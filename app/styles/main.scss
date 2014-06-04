@@ -1,0 +1,99 @@
+@import "compass/css3";
+
+$gray-darker:            lighten(#000, 13.5%) !default; // #222
+$gray-dark:              lighten(#000, 20%) !default;   // #333
+$gray:                   lighten(#000, 33.5%) !default; // #555
+$gray-light:             lighten(#000, 60%) !default;   // #999
+$gray-light1:             lighten(#000, 63%) !default;   // #999
+$gray-lighter:           lighten(#000, 93.5%) !default; // #eee
+$gray-lighter1:           lighten(#000, 95%) !default; 
+
+$base-color:             #006699 !default; 
+$base-dark:            darken($base-color, 5%) !default;
+$base-light:           lighten($base-color, 5%) !default;
+
+#todoContainer li.done label {
+color: #777777;
+text-decoration: line-through;
+}
+
+#todoContainer li.editing .edit{
+    display: block;
+}
+#todoContainer li.editing .view{
+    display: none;
+}
+#todoContainer li .edit{
+    display: none;
+}
+#todoContainer li .view{
+    display: black;
+}
+
+// Global
+// -------------------------
+
+ul{
+    list-style: none; 
+}
+
+// Menu
+// -------------------------
+
+$menu-item-height : 50px;
+$menu-big-item-height : 100px;
+
+
+@mixin menu-a($height,$background-color,$hover-background-color) {
+    background-color: $background-color;
+    display: block;
+    height: $height;
+    line-height:$height;
+    color: $base-color;
+    &:hover,
+    &:focus {
+        color:$base-dark;
+        text-decoration: none;
+        background-color: $hover-background-color;
+    }  
+}
+
+.menu{
+    ul{
+        padding: 0;
+    }
+    >ul {
+        >li{
+            text-align: center; 
+            p{
+                color: $base-color;
+                background-color: $gray-light;
+                height:$menu-item-height;
+                line-height: $menu-item-height;
+                margin: 0;
+
+                a{
+                    @include menu-a($menu-item-height,$gray-light,$gray-light1);
+                }
+            }
+
+            >ul{
+                li{
+                    text-align: center;
+                    a{
+                        @include menu-a($menu-item-height,$gray-lighter,$gray-lighter1);              
+                    }
+                }
+            }
+        }
+        >li.big-li{
+            height: $menu-big-item-height;
+        }
+    }
+
+}
+
+a#sendGoods{
+    @include menu-a($menu-big-item-height,$gray-lighter,$gray-lighter1);
+    font-size: 26px;
+}

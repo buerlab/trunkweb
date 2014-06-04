@@ -1,0 +1,95 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>grunt-html-htmlbuild - Test Page</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/test.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">回程车</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a id="nickname" href="#">吴师傅</a></li>
+            <li><a id="logout" href="#">退出</a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+    <div class="container">
+        <div class="menu col-sm-3">
+            <ul>
+                <li class="big-li">
+                    <a id="sendGoods" href="javascript:void(0);">我要发货</a>
+                </li>
+                <li>
+                    <p>等待接单 (2)</p>
+                    <ul>
+                        <li><a href="javascript:void(0);">水泥</a></li>
+                        <li><a href="javascript:void(0);">食物</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="javascript:void(0);">历史单据 (10)</a></p>
+                </li>
+                <li>
+                    <p>个人资料</p>
+                    <ul>
+                        <li><a href="javascript:void(0);">修改资料</a></li>
+                        <li><a href="javascript:void(0);">修改密码</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="main col-sm-9">
+            <div>
+                <!-- htmlbuild:section sendGoods -->
+                <!-- /htmlbuild -->
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section vendor_plugins -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/main.js -->
+    <script src="scripts/main.js"></script>
+    <script src="scripts/templates.js"></script>
+    <script src="scripts/models/todo.js"></script>
+    <script src="scripts/collections/todos.js"></script>
+    
+    <script src="scripts/views/todos.js"></script>
+    <script src="scripts/views/todo.js"></script>
+    <script src="scripts/routes/todo2.js"></script>
+    <!-- endbuild -->
+</body>
+</html>
