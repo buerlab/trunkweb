@@ -111,4 +111,24 @@ window.Yobockbone = {
 $(document).ready(function () {
     'use strict';
     Yobockbone.init();
+
+    $('#datetimepicker').datepicker({
+      format: "yyyy-mm-dd",
+      language: "zh-CN",
+      orientation: "top right",
+      autoclose: true,
+      startDate: '-0d',
+      beforeShowDay: function (date) {
+      }
+    });
+    $('select').selectpicker();
+    
+    $('input').iCheck({
+    checkboxClass: 'icheckbox_square-blue',
+    radioClass: 'iradio_square-blue',
+    increaseArea: '20%' // optional
+  });
+  $(".main").css({
+    "height": (document.documentElement.clientHeight-72)  + "px",
+  });
 });

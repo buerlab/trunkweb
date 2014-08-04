@@ -24,7 +24,7 @@ module.exports = function (grunt) {
     // configurable paths
     var yeomanConfig = {
         app: 'app',
-        dist: 'dist',
+        dist: 'trunkserver/admin_dist',
         fixtures:'app/fixtures',
         tmp:".tmp"
     };
@@ -39,7 +39,7 @@ module.exports = function (grunt) {
             compass: {
                 files: ['<%= yeoman.app %>/styles/{,*/}*.{scss,sass}',
                         '<%= yeoman.app %>/bower_components/sass-bootstrap/lib/*.scss'],
-                tasks: ['compass']
+                tasks: ['compass','htmlmin','useminPrepare','usemin',"tornado"]
             },
             livereload: {
                 options: {
@@ -60,15 +60,30 @@ module.exports = function (grunt) {
                 ],
                 tasks: ['jst']
             },
-            test: {
-                files: ['<%= yeoman.app %>/scripts/{,*/}*.js', 'test/spec/**/*.js'],
-                tasks: ['test:true']
-            },
+            // test: {
+            //     files: ['<%= yeoman.app %>/scripts/{,*/}*.js', 'test/spec/**/*.js'],
+            //     tasks: ['test:true']
+            // },
             htmlbuild:{
                 files: ['<%= yeoman.app %>/nativeHTML/*.html',
                         '<%= yeoman.app %>/fixtures/{,*/}*'
                         ],
-                tasks: ['htmlbuild']
+                tasks: ['htmlbuild','htmlmin','useminPrepare','usemin',"tornado"]
+            },
+            js:{
+                files:['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js'],
+                tasks: [
+                    'useminPrepare',
+                    // 'imagemin',
+                    'htmlmin',
+                    'concat',
+                     // 'cssmin',
+                    // 'uglify',
+                    // 'copy',
+                    // 'rev',
+                    'usemin',
+                    "tornado"
+                ]
             }
         },
         connect: {
@@ -104,7 +119,7 @@ module.exports = function (grunt) {
             },
             dist: {
                 options: {
-                    port: 8888,
+                    port: 9289,
                     middleware: function (connect) {
                         return [
                             lrSnippet,
@@ -173,7 +188,7 @@ module.exports = function (grunt) {
             dist: {}
         },*/
         useminPrepare: {
-            html: '<%= yeoman.app %>/index.html',
+            html: '<%= yeoman.app %>/*.html',
             options: {
                 dest: '<%= yeoman.dist %>'
             }
@@ -238,7 +253,8 @@ module.exports = function (grunt) {
                         '.htaccess',
                         'images/{,*/}*.{webp,gif}',
                         'styles/fonts/{,*/}*.*',
-                        'bower_components/sass-bootstrap/fonts/*.*'
+                        'bower_components/sass-bootstrap/fonts/*.*',
+                        'bower_components/iCheck/skins/square/*.*'
                     ]
                 }]
             }
@@ -257,8 +273,9 @@ module.exports = function (grunt) {
                         '<%= yeoman.dist %>/scripts/{,*/}*.js',
                         '<%= yeoman.dist %>/styles/{,*/}*.css',
                         '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp}',
-                        '/styles/fonts/{,*/}*.*',
-                        'bower_components/sass-bootstrap/fonts/*.*'
+                        // '/styles/fonts/{,*/}*.*',
+                        // 'bower_components/sass-bootstrap/fonts/*.*',
+                        // 'bower_components/iCheck/skins/square/*.*'
                     ]
                 }
             }
@@ -298,7 +315,9 @@ module.exports = function (grunt) {
                         vendor_plugins:'<%= yeoman.fixtures %>/snippets/vendor_plugins.snippet',
                         views: '<%= yeoman.fixtures %>/views/**/*.html',
                         sendGoods:'<%= yeoman.fixtures %>/views/sendGoods.html',
+                        nav:'<%= yeoman.fixtures %>/views/nav.html',
                         templates: '<%= yeoman.fixtures %>/templates/**/*.html',
+                        law:'<%= yeoman.fixtures %>/snippets/law.snippet'
                     },
                     data: {
                         version: "0.1.0",
@@ -315,7 +334,7 @@ module.exports = function (grunt) {
        grunt.log.writeln('Starting tornado development server.');
        // stdio: 'inherit' let us see tornado output in grunt
        var PIPE = {stdio: 'inherit'};
-       spawn('python', ['./backend/index.py'], PIPE);
+       spawn('sh', ['./trunkserver/restart_admin.sh'], PIPE);
     });
 
     grunt.registerTask('createDefaultTemplate', function () {
@@ -350,8 +369,8 @@ module.exports = function (grunt) {
             'createDefaultTemplate',
             'jst',
             'compass:server',
-            'connect:livereload',
-            'open:livereload',
+            // 'connect:livereload',
+            'open:server',
             'watch'
         ]);
     });
@@ -390,7 +409,7 @@ module.exports = function (grunt) {
          // 'cssmin',
         // 'uglify',
         'copy',
-        'rev',
+        // 'rev',
         'usemin'
     ]);
 

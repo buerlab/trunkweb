@@ -1,7 +1,10 @@
 node_modules
 backend
+backend_backup
+test
 dist
 .tmp
 .sass-cache
 bower_components
 test/bower_components
+app/bower_components

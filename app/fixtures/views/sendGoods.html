@@ -1,36 +1,74 @@
-﻿ <form class="form-horizontal" role="form">
+﻿ <form class="form-horizontal" role="form" data-parsley-validate>
   <div class="form-group">
-    <label for="goodName" class="col-sm-2 control-label">货物名称</label>
-    <div class="col-sm-10">
-      <input type="input" class="form-control" id="goodName" placeholder="请填入货物名称">
+    <label for="goodName" class="col-sm-4 control-label">货物名称</label>
+    <div class="col-sm-8">
+      <input type="input" class="form-control" id="goodName" placeholder="请填入货物名称" required>
     </div>
   </div>
   <div class="form-group">
-    <label for="goodWeight" class="col-sm-2 control-label">重量</label>
-    <div class="col-sm-10">
-      <input type="input" class="form-control" id="goodWeight" placeholder="请填入货物重量">
+    <label for="goodWeight" class="col-sm-4 control-label">重量</label>
+    <div class="col-sm-8">
+      <input type="input" class="form-control" id="goodWeight" placeholder="请填入货物重量" required>
     </div>
   </div>
   <div class="form-group">
-    <label for="goodPrice" class="col-sm-2 control-label">目标价格</label>
-    <div class="col-sm-10">
+    <label for="goodPrice" class="col-sm-4 control-label">目标价格</label>
+    <div class="col-sm-8">
       <input type="input" class="form-control" id="goodPrice" placeholder="目标价格">
     </div>
   </div>
   <div class="form-group">
-    <label  class="col-sm-2 control-label">期望车型</label>
-    <div class="col-sm-10">
-      <label class="checkbox-inline">
-        <input type="checkbox" id="inlineCheckbox1" value="option1"> 平板车
+    <label  class="col-sm-4 control-label">期望车型</label>
+    <div class="col-sm-8">
+      <label class="icheck">
+        <input type="checkbox" id="inlineCheckbox1" value="option1" required> <span>平板车</span>
       </label>
-      <label class="checkbox-inline">
-        <input type="checkbox" id="inlineCheckbox2" value="option2"> 高栏车
+      <label class="icheck">
+        <input type="checkbox" id="inlineCheckbox2" value="option2" required> <span>高栏车</span>
       </label>
     </div>
   </div>
   <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <button type="button" class="btn btn-default">确定</button>
+    <label class="col-sm-4 control-label">时间</label>
+    <div class="col-sm-5">
+      <div class="input-group date" id="datetimepicker">
+        <input type="text" class="form-control"><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <select class="form-control" required>
+        <option value="">choose</option>
+        <option>01</option>
+        <option>01</option>
+        <option>02</option>
+        <option>03</option>
+        <option>04</option>
+        <option>05</option>
+        <option>06</option>
+        <option>07</option>
+        <option>08</option>
+        <option>09</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+        <option>13</option>
+        <option>14</option>
+        <option>15</option>
+        <option>16</option>
+        <option>17</option>
+        <option>18</option>
+        <option>19</option>
+        <option>20</option>
+        <option>21</option>
+        <option>22</option>
+        <option>23</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <div class="col-sm-offset-4 col-sm-8">
+      <button type="submit" class="btn btn-default">确定</button>
     </div>
   </div>
 </form>

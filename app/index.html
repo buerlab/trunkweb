@@ -2,7 +2,7 @@
 <html class="no-js">
 
 <head>
-    <title>grunt-html-htmlbuild - Test Page</title>
+    <title>天天回程车</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -16,14 +16,18 @@
 <![endif]-->
     <!-- endbuild -->
 
-    <!-- build:css(.tmp) styles/main.css -->
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/test.css">
+
+
+    <!-- build:css({.tmp,app}) styles/boostrap.css -->
+    <link rel="stylesheet" href="styles/boostrap.css">
     <!-- endbuild -->
 
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
 
-    <!-- build:css(.tmp) styles/boostrap.css -->
-    <link rel="stylesheet" href="styles/boostrap.css">
+    <!-- build:css(.tmp) styles/index.css -->
+    <link rel="stylesheet" href="styles/index.css">
     <!-- endbuild -->
 
     <!-- build:js scripts/vendor/modernizr.js -->
@@ -50,99 +54,76 @@
         <div class="container">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
                     <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">回程车</a>
+                <a class="navbar-brand" href="/">天天回程车管理端</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a id="nickname" href="#">吴师傅</a>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
+                <ul class="nav navbar-nav">
+                    <li><a id="navVerifyIDNum" class="navOperate" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 审核身份证</a>
                     </li>
-                    <li><a id="logout" href="#">退出</a>
+                    <li><a id="navVerifyDriverLicense" class="navOperate" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核驾驶证</a>
+                    </li>
+                    <li><a id="navVerifyTrunkLicense" class="navOperate" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核行驶证</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  用户反馈</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  添加货源车源信息</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="navLogin" style="display:none" href="login.html">登录</a>
+                    </li>
+                    <li><a id="navRegister" style="display:none" href="register.html">注册</a>
+                    </li>
+                    <li><a id="navNickname" style="display:none" href="javascript:void(0);">吴师傅</a>
+                    </li>
+                    <li><a id="navLogout" style="display:none" href="javascript:void(0);">退出</a>
                     </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
         </div>
     </nav>
-    <div class="container">
-        <div class="menu col-sm-3">
-            <ul>
-                <li class="big-li">
-                    <a id="sendGoods" href="javascript:void(0);">我要发货</a>
-                </li>
-                <li>
-                    <p>等待接单 (2)</p>
-                    <ul>
-                        <li><a href="javascript:void(0);">水泥</a>
-                        </li>
-                        <li><a href="javascript:void(0);">食物</a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <p><a href="javascript:void(0);">历史单据 (10)</a>
-                    </p>
-                </li>
-                <li>
-                    <p>个人资料</p>
-                    <ul>
-                        <li><a href="javascript:void(0);">修改资料</a>
-                        </li>
-                        <li><a href="javascript:void(0);">修改密码</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <div class="main col-sm-9">
-            <div>
-                <form class="form-horizontal" role="form">
-                    <div class="form-group">
-                        <label for="goodName" class="col-sm-2 control-label">货物名称</label>
-                        <div class="col-sm-10">
-                            <input type="input" class="form-control" id="goodName" placeholder="请填入货物名称">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="goodWeight" class="col-sm-2 control-label">重量</label>
-                        <div class="col-sm-10">
-                            <input type="input" class="form-control" id="goodWeight" placeholder="请填入货物重量">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="goodPrice" class="col-sm-2 control-label">目标价格</label>
-                        <div class="col-sm-10">
-                            <input type="input" class="form-control" id="goodPrice" placeholder="目标价格">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">期望车型</label>
-                        <div class="col-sm-10">
-                            <label class="checkbox-inline">
-                                <input type="checkbox" id="inlineCheckbox1" value="option1">平板车
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" id="inlineCheckbox2" value="option2">高栏车
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button type="button" class="btn btn-default">确定</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
 
+    <div class="banner">
+        <ul>
+            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/sunset.jpg)">
+                <div class="inner">
+                    <h1>中国最好用的货车软件</h1>
+                    <p>web版、安卓、ios三平台发布</p>
+
+                    <a class="btn" href="#download">下载</a>
+                </div>
+            </li>
+
+            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/wood.jpg)">
+                <div class="inner">
+                    <h1>高效</h1>
+                    <p>精准定位，安全支付，物流无忧</p>
+
+                    <a class="btn" href="#download">下载</a>
+                </div>
+            </li>
+
+            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/subway.jpg);">
+                <div class="inner">
+                    <h1>我们都在用</h1>
+                    <p>你，还在等什么</p>
+
+                    <a class="btn" href="//github.com/idiot/unslider">参与</a>
+                </div>
+            </li>
+        </ul>
     </div>
+
+
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
     <script>
@@ -162,14 +143,16 @@
         ga('send', 'pageview');
     </script>
 
-    <!-- build:js scripts/vendor.js -->
+    <!-- build:js scripts/jquery.js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/underscore/underscore.js"></script>
-    <script src="bower_components/backbone/backbone.js"></script>
-    <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
     <!-- endbuild -->
 
-    <!-- build:js scripts/plugins.js -->
+    <!-- build:js scripts/vendor_index.js -->
+    <script src="bower_components/unslider/src/unslider.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
     <script src="bower_components/sass-bootstrap/js/affix.js"></script>
     <script src="bower_components/sass-bootstrap/js/alert.js"></script>
     <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
@@ -184,15 +167,10 @@
     <script src="bower_components/sass-bootstrap/js/tab.js"></script>
     <!-- endbuild -->
 
-    <!-- build:js({.tmp,app}) scripts/main.js -->
-    <script src="scripts/main.js"></script>
-    <script src="scripts/templates.js"></script>
-    <script src="scripts/models/todo.js"></script>
-    <script src="scripts/collections/todos.js"></script>
-
-    <script src="scripts/views/todos.js"></script>
-    <script src="scripts/views/todo.js"></script>
-    <script src="scripts/routes/todo2.js"></script>
+    <!-- build:js({.tmp,app}) scripts/index.js -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/index.js"></script>
     <!-- endbuild -->
 </body>
 

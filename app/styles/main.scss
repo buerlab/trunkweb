@@ -1,35 +1,24 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
 @import "compass/css3";
+
+$font-size-base:          14px !default;
+$font-size-large:         ceil($font-size-base * 1.25) !default; // ~18px
 
 $gray-darker:            lighten(#000, 13.5%) !default; // #222
 $gray-dark:              lighten(#000, 20%) !default;   // #333
 $gray:                   lighten(#000, 33.5%) !default; // #555
 $gray-light:             lighten(#000, 60%) !default;   // #999
-$gray-light1:             lighten(#000, 63%) !default;   // #999
+$gray-light1:            lighten(#000, 65%) !default;   // #999
 $gray-lighter:           lighten(#000, 93.5%) !default; // #eee
-$gray-lighter1:           lighten(#000, 95%) !default; 
+$gray-lighter1:          lighten(#000, 97%) !default; 
 
 $base-color:             #006699 !default; 
 $base-dark:            darken($base-color, 5%) !default;
 $base-light:           lighten($base-color, 5%) !default;
-
-#todoContainer li.done label {
-color: #777777;
-text-decoration: line-through;
-}
-
-#todoContainer li.editing .edit{
-    display: block;
-}
-#todoContainer li.editing .view{
-    display: none;
-}
-#todoContainer li .edit{
-    display: none;
-}
-#todoContainer li .view{
-    display: black;
-}
-
+$base-font-color:       #FFF !default;
 // Global
 // -------------------------
 
@@ -37,12 +26,35 @@ ul{
     list-style: none; 
 }
 
+.hr {
+    border: 0;
+    background-color: #dfdddc;
+    height: 1px;
+    overflow: hidden;
+    line-height: 0;
+    margin: 0px 10px;
+}
+
+.navbar{
+    margin-bottom: 0px !important;
+}
+
+.datepicker{
+    border-radius: 0 !important;
+}
+
+.my-container{
+    padding-top: 20px;
+}
 // Menu
 // -------------------------
 
 $menu-item-height : 50px;
 $menu-big-item-height : 100px;
+$menu-border-radius: 5px;
 
+$menu-background-color:#fafafa;
+$menu-hover-background-color:#fff;
 
 @mixin menu-a($height,$background-color,$hover-background-color) {
     background-color: $background-color;
@@ -59,29 +71,37 @@ $menu-big-item-height : 100px;
 }
 
 .menu{
+    padding-right: 0px;
+    font-size: $font-size-large;
     ul{
         padding: 0;
     }
     >ul {
+        background-color: $menu-background-color;
+        @include border-top-radius($menu-border-radius);
         >li{
-            text-align: center; 
-            p{
+
+            >div{
                 color: $base-color;
-                background-color: $gray-light;
                 height:$menu-item-height;
                 line-height: $menu-item-height;
-                margin: 0;
-
+                p{
+                    margin: 0;
+                    padding-left: 15px;
+                }
                 a{
-                    @include menu-a($menu-item-height,$gray-light,$gray-light1);
+                    padding-left: 15px;
+                    @include menu-a($menu-item-height,$menu-background-color,$menu-hover-background-color);
                 }
             }
 
             >ul{
                 li{
-                    text-align: center;
+                    font-size: $font-size-base;
+                    text-align: left;
                     a{
-                        @include menu-a($menu-item-height,$gray-lighter,$gray-lighter1);              
+                        padding-left: 40px;
+                        @include menu-a($menu-item-height,$menu-background-color,$menu-hover-background-color);              
                     }
                 }
             }
@@ -89,11 +109,48 @@ $menu-big-item-height : 100px;
         >li.big-li{
             height: $menu-big-item-height;
         }
+        a.current{
+            border: 2px $base-dark solid;
+            border-width:0 0 0 2px;
+            background-color: $menu-hover-background-color;
+        }
     }
-
+    li.end-li{
+        @media (min-width: $screen-sm-min) {//480px
+            @include border-bottom-left-radius($menu-border-radius);
+            @include border-bottom-right-radius(0px);
+        }
+        @include border-bottom-radius($menu-border-radius);
+        background-color: $base-color;
+        display: block;
+        height: 5px;        
+    }
 }
 
 a#sendGoods{
-    @include menu-a($menu-big-item-height,$gray-lighter,$gray-lighter1);
-    font-size: 26px;
+
+    @media (min-width: $screen-sm-min) {//480px
+        @include border-top-left-radius($menu-border-radius);
+        @include border-top-right-radius(0px);
+    }
+    @include border-top-radius($menu-border-radius);
+        
+    background-color: $base-color;
+    display: block;
+    text-align: center;
+    height: $menu-big-item-height;
+    line-height:$menu-big-item-height;
+    color: $base-font-color;
+    &:hover,
+    &:focus {
+        color:$base-font-color;
+        text-decoration: none;
+        background-color: $base-light;
+    }
+    font-size: $font-size-large;
+}
+
+.main{
+    background-color: white;
+    padding: 15px;
 }
