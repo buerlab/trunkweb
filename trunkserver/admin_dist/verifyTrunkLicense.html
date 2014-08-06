@@ -1,0 +1,127 @@
+<!doctype html>
+<html class="no-js">
+
+<head>
+    <title>审核行驶证</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="styles/ie6.css">
+    <![endif]-->
+
+    <link rel="stylesheet" href="styles/base.css">
+
+    <link rel="stylesheet" href="styles/verifyTrunkLicense.css">
+
+    <script src="scripts/vendor/modernizr.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="scripts/compatible.js"></script>
+    <![endif]-->
+
+    <!--[if lte IE 6]>
+    <script src="scripts/bootstrap-ie.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">天天回程车管理端</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
+                <ul class="nav navbar-nav">
+                    <li><a id="navVerifyIDNum" class="navOperate" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 审核身份证</a>
+                    </li>
+                    <li><a id="navVerifyDriverLicense" class="navOperate" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核驾驶证</a>
+                    </li>
+                    <li><a id="navVerifyTrunkLicense" class="navOperate" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核行驶证</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  用户反馈</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  添加货源车源信息</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="navLogin" style="display:none" href="login.html">登录</a>
+                    </li>
+                    <li><a id="navRegister" style="display:none" href="register.html">注册</a>
+                    </li>
+                    <li><a id="navNickname" style="display:none" href="javascript:void(0);">吴师傅</a>
+                    </li>
+                    <li><a id="navLogout" style="display:none" href="javascript:void(0);">退出</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">待审核行驶证</h3>
+            </div>
+            <table class="table" id="trunkLicenseTable">
+                <thead>
+                    <tr>
+
+                        <th>id</th>
+                        <th>电话号码</th>
+                        <th>昵称</th>
+                        <th>车牌号</th>
+                        <th>行驶证号</th>
+                        <th>照片</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+    <script>
+        (function(b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l;
+            b[l] || (b[l] =
+                function() {
+                    (b[l].q = b[l].q || []).push(arguments)
+                });
+            b[l].l = +new Date;
+            e = o.createElement(i);
+            r = o.getElementsByTagName(i)[0];
+            e.src = '//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X');
+        ga('send', 'pageview');
+    </script>
+
+    <script src="scripts/jquery.js"></script>
+
+
+    <script src="scripts/plugins_bootstrap.js"></script>
+
+
+    <script src="scripts/verifyTrunkLicense.js"></script>
+</body>
+
+</html>

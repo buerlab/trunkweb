@@ -1,0 +1,133 @@
+<!doctype html>
+<html class="no-js">
+
+<head>
+    <title>登录</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="styles/ie6.css">
+    <![endif]-->
+
+    <link rel="stylesheet" href="styles/base.css">
+
+    <link rel="stylesheet" href="styles/parsley.css">
+
+    <link rel="stylesheet" href="styles/login.css">
+
+
+
+
+    <script src="scripts/vendor/modernizr.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="scripts/compatible.js"></script>
+    <![endif]-->
+
+    <!--[if lte IE 6]>
+    <script src="scripts/bootstrap-ie.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">天天回程车管理端</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
+                <ul class="nav navbar-nav">
+                    <li><a id="navVerifyIDNum" class="navOperate" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 审核身份证</a>
+                    </li>
+                    <li><a id="navVerifyDriverLicense" class="navOperate" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核驾驶证</a>
+                    </li>
+                    <li><a id="navVerifyTrunkLicense" class="navOperate" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核行驶证</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  用户反馈</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  添加货源车源信息</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="navLogin" style="display:none" href="login.html">登录</a>
+                    </li>
+                    <li><a id="navRegister" style="display:none" href="register.html">注册</a>
+                    </li>
+                    <li><a id="navNickname" style="display:none" href="javascript:void(0);">吴师傅</a>
+                    </li>
+                    <li><a id="navLogout" style="display:none" href="javascript:void(0);">退出</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="panel panel-default login-container">
+            <div class="panel-heading">
+                <h3 class="panel-title">登录</h3>
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal" id="loginForm" role="form" data-parsley-validate="">
+                    <div class="form-group">
+                        <label class="glyphicon glyphicon-user login-icon"></label>
+                        <input type="input" class="form-control" id="phoneNum" placeholder="用户名" required="">
+                    </div>
+                    <div class="form-group">
+                        <label class="glyphicon glyphicon-lock login-icon"></label>
+                        <input type="password" class="form-control" id="password" placeholder="密码" required="">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="loginBtn">登录</button>
+                        <a class="pull-right registerBtn" href="/register.html">还没注册？</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+    <script>
+        (function(b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l;
+            b[l] || (b[l] =
+                function() {
+                    (b[l].q = b[l].q || []).push(arguments)
+                });
+            b[l].l = +new Date;
+            e = o.createElement(i);
+            r = o.getElementsByTagName(i)[0];
+            e.src = '//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X');
+        ga('send', 'pageview');
+    </script>
+
+    <script src="scripts/jquery.js"></script>
+
+    <script src="scripts/vendor_login.js"></script>
+
+    <script src="scripts/plugins_bootstrap.js"></script>
+
+
+
+
+    <script src="scripts/login.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>添加信息</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/typeahead.js-bootstrap.css -->
+    <link rel="stylesheet" href="styles/typeahead.js-bootstrap.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/addInfo.css -->
+    <link rel="stylesheet" href="styles/addInfo.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    <div class="main">
+        <div class="panel panel-default my-panel">
+          <div class="panel-heading">
+            <h3 class="panel-title">添加货源、车源信息</h3>
+          </div>
+
+
+          <form class="form-horizontal" role="form">
+            <textarea class="tmp_textarea col-sm-12" style="text-align:left;">这里的信息不会保存，用于暂时存放数据，方便录入。</textarea>
+             <div class="form-group">
+                <label for="from" class="col-sm-2 control-label">信息类别:</label>
+                <div class="col-sm-10">
+                <label class="radio-inline">
+                    <input type="radio" name="userType" id="goodsRadio" value="goods" checked>
+                    货源信息
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="userType" id="trunkRadio" value="trunk">
+                    车源信息
+                  </label>
+                </div>
+              </div>
+            
+            <div class="form-group ">
+                <label for="nickname" class="col-sm-2 control-label"><span class="required">*</span>称呼:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="nickname" placeholder="比如：吴师傅">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="phoneNum" class="col-sm-2 control-label"><span class="required">*</span>电话号码:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="phoneNum" placeholder="比如：15507507400">
+                </div>
+              </div>
+              <div class="form-group goods-required">
+                <label for="goodsName" class="col-sm-2 control-label"><span class="required">*</span>货物名称:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="goodsName" placeholder="比如：海鲜">
+                </div>
+              </div>
+              
+              <div class="form-group goods-required">
+                <label for="goodsWeight" class="col-sm-2 control-label">重量:</label>
+                <div class="col-sm-3">
+                  <input type="text" class="form-control" id="goodsWeight" placeholder="5.1">
+                </div>
+                <label for="from" class="col-sm-1 control-label">吨</label>
+              </div>
+              <div class="form-group goods-required">
+                <label for="goodsPrice" class="col-sm-2 control-label">目标价格:</label>
+                <div class="col-sm-3">
+                  <input type="text" class="form-control" id="goodsPrice" placeholder="5.1">
+                </div>
+                <label for="from" class="col-sm-1 control-label">元</label>
+              </div>
+              <div class="form-group trunk-required">
+                <label class="col-sm-2 control-label"><span class="required">*</span>车辆类型:</label>
+                <div class="col-sm-10">
+                    <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType" value="厢车" checked>
+                    厢车
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType"value="平板车" >
+                    平板车
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType" value="高栏车">
+                    高栏车
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType" value="低栏车">
+                    低栏车
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType" value="面包车">
+                    面包车
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="trunkType" class="trunkType" value="集装车">
+                    集装车
+                  </label>
+                </div>
+              </div>
+              <div class="form-group trunk-required">
+                <label for="licensePlate" class="col-sm-2 control-label">车牌号码:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="licensePlate" placeholder="比如：粤B123456">
+                </div>
+              </div>
+              <div class="form-group trunk-required">
+                <label for="trunkLength" class="col-sm-2 control-label">车长:</label>
+                <div class="col-sm-3">
+                  <input type="text" class="form-control" id="trunkLength" placeholder="比如：9.6">
+                </div>
+                <label  class="col-sm-1 control-label">米。</label>
+                <label class="col-sm-2 control-label">载重:</label>
+                <div class="col-sm-3">
+                  <input type="text" class="form-control" id="trunkLoad" placeholder="比如：5.4">
+                </div>
+                <label class="col-sm-1 control-label">吨</label>
+              </div>
+
+              <div class="form-group">
+                <label for="from" class="col-sm-2 control-label"><span class="required">*</span>出发地:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control typeahead" id="from" placeholder="比如：广东-广州-天河">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="to" class="col-sm-2 control-label"><span class="required">*</span>目的地:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control typeahead" id="to" placeholder="比如：广东-深圳-南山">
+                </div>
+              </div>
+              
+
+              <div class="form-group">
+                <label for="time" class="col-sm-2 control-label"><span class="required">*</span>发布时间:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="time" placeholder="比如：2014-04-03 21:20">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="validateTime" class="col-sm-2 control-label"><span class="required">*</span>有效期:</label>
+                <div class="col-sm-3">
+                  <input type="text" class="form-control" id="validateTime" placeholder="比如： 2 默认2天">
+                </div>
+                <label class="col-sm-1 control-label">天</label>
+              </div>
+
+              <div class="form-group">
+                <label for="comment" class="col-sm-2 control-label">备注:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="comment" placeholder="比如： 不能倾放">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="op" class="col-sm-2 control-label">操作:</label>
+                <div class="col-sm-10">
+                  <button type="button" class="btn btn-primary btn-lg confirmBtn">确定提交</button>
+                  <button type="button" class="btn btn-danger btn-lg clearBtn">清空</button>
+                </p>
+                </div>
+              </div>
+            </form>
+
+        </div>
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/addInfo.js -->
+    <script src="scripts/typehead.js"></script>
+    <script src="scripts/region.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/addInfo.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

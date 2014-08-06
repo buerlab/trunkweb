@@ -1,0 +1,20 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
+.my-panel{
+    width: 600px;
+    margin: 0 auto;
+}
+
+.form-horizontal{
+    padding: 20px;
+}
+
+.required{
+    color: red;
+}
+
+.twitter-typeahead{
+    width: 100%;
+}

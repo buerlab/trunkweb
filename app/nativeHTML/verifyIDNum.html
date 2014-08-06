@@ -1,0 +1,80 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>grunt-html-htmlbuild - Test Page</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/verifyIDNum.css -->
+    <link rel="stylesheet" href="styles/verifyIDNum.css">
+    <!-- endbuild -->
+
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    <div class="main">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">待审核身份证</h3>
+          </div>
+           <table class="table" id="IDNumTable">
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>电话号码</th>
+              <th>昵称</th>
+              <th>身份证</th>
+              <th>照片</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+           
+          </tbody>
+        </table>
+        </div>
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/verifyIDNum.js -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/verifyIDNum.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

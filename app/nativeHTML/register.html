@@ -1,0 +1,122 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>注册</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css({.tmp,app}) styles/register_plugin.css -->
+        <link rel="stylesheet" href="bower_components/iCheck/skins/square/blue.css" />
+        <link rel="stylesheet" href="bower_components/kbootstrap-select/bootstrap-select.css" />
+        <link rel="stylesheet" href="bower_components/parsleyjs/src/parsley.css" />
+    <!-- endbuild -->
+
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/register.css -->
+    <link rel="stylesheet" href="styles/register.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    
+    <div class="container">
+        <div class="panel panel-default register-container">
+          <div class="panel-heading">
+            <h3 class="panel-title">注册</h3>
+          </div>
+          <div class="panel-body">
+             <form class="form-horizontal" role="form" data-parsley-validate id="registerForm">
+
+
+              <div class="form-group">
+                <label for="username" class="col-sm-2 control-label"><span class="required-mark">*</span>用户名</label>
+                <div class="col-sm-10">
+                    <input type="input" class="form-control form-control-with-parsley" id="username" placeholder="用户名" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="password" class="col-sm-2 control-label"><span class="required-mark">*</span>密码</label>
+                <div class="col-sm-10">
+                    <input type="password" class="form-control form-control-with-parsley" id="password" placeholder="输入密码" required data-parsley-length="[6, 20]">
+                </div>
+              </div>
+               <div class="form-group">
+                <label for="confirmPassword" class="col-sm-2 control-label"><span class="required-mark">*</span>确认密码</label>
+                <div class="col-sm-10">
+                    <input type="password" class="form-control form-control-with-parsley" id="confirmPassword" placeholder="再次输入密码" required data-parsley-equalto="#password">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                  <button type="button" class="btn btn-primary" id="registerBtn">注册</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+    </div>
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+
+
+
+    <!-- build:js scripts/vendor_register.js -->
+    <script src="bower_components/iCheck/icheck.js"></script>
+    <script src="bower_components/kbootstrap-select/bootstrap-select.js"></script>
+    <script>
+            window.ParsleyConfig = {
+                errorsContainer : function (fieldInstance) {
+                    var errorMsgContainer = fieldInstance.$element.parent()
+                    return errorMsgContainer;
+                },
+              errorsWrapper: '<p class="parsley-errors-list"></p>',
+              errorTemplate: '<span></span>'
+            };
+    </script>
+    <script src="bower_components/parsleyjs/dist/parsley.js"></script>
+    <script src="bower_components/parsleyjs/src/i18n/zh_cn.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+
+
+    <!-- build:js({.tmp,app}) scripts/register.js -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/register.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

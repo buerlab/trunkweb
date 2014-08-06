@@ -1,0 +1,245 @@
+<!doctype html>
+<html class="no-js">
+
+<head>
+    <title>添加信息</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="styles/ie6.css">
+    <![endif]-->
+
+    <link rel="stylesheet" href="styles/base.css">
+
+    <link rel="stylesheet" href="styles/typeahead.js-bootstrap.css">
+
+    <link rel="stylesheet" href="styles/addInfo.css">
+
+
+    <script src="scripts/vendor/modernizr.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="scripts/compatible.js"></script>
+    <![endif]-->
+
+    <!--[if lte IE 6]>
+    <script src="scripts/bootstrap-ie.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">天天回程车管理端</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
+                <ul class="nav navbar-nav">
+                    <li><a id="navVerifyIDNum" class="navOperate" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 审核身份证</a>
+                    </li>
+                    <li><a id="navVerifyDriverLicense" class="navOperate" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核驾驶证</a>
+                    </li>
+                    <li><a id="navVerifyTrunkLicense" class="navOperate" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核行驶证</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  用户反馈</a>
+                    </li>
+                    <li><a id="navFeedback" class="navOperate" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span>  添加货源车源信息</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="navLogin" style="display:none" href="login.html">登录</a>
+                    </li>
+                    <li><a id="navRegister" style="display:none" href="register.html">注册</a>
+                    </li>
+                    <li><a id="navNickname" style="display:none" href="javascript:void(0);">吴师傅</a>
+                    </li>
+                    <li><a id="navLogout" style="display:none" href="javascript:void(0);">退出</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
+    <div class="main">
+        <div class="panel panel-default my-panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">添加货源、车源信息</h3>
+            </div>
+
+
+            <form class="form-horizontal" role="form">
+                <textarea class="tmp_textarea col-sm-12" style="text-align:left">这里的信息不会保存，用于暂时存放数据，方便录入。</textarea>
+                <div class="form-group">
+                    <label for="from" class="col-sm-2 control-label">信息类别:</label>
+                    <div class="col-sm-10">
+                        <label class="radio-inline">
+                            <input type="radio" name="userType" id="goodsRadio" value="goods" checked="checked">货源信息
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="userType" id="trunkRadio" value="trunk">车源信息
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nickname" class="col-sm-2 control-label"><span class="required">*</span>称呼:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="nickname" placeholder="比如：吴师傅">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNum" class="col-sm-2 control-label"><span class="required">*</span>电话号码:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="phoneNum" placeholder="比如：15507507400">
+                    </div>
+                </div>
+                <div class="form-group goods-required">
+                    <label for="goodsName" class="col-sm-2 control-label"><span class="required">*</span>货物名称:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="goodsName" placeholder="比如：海鲜">
+                    </div>
+                </div>
+
+                <div class="form-group goods-required">
+                    <label for="goodsWeight" class="col-sm-2 control-label">重量:</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="goodsWeight" placeholder="5.1">
+                    </div>
+                    <label for="from" class="col-sm-1 control-label">吨</label>
+                </div>
+                <div class="form-group goods-required">
+                    <label for="goodsPrice" class="col-sm-2 control-label">目标价格:</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="goodsPrice" placeholder="5.1">
+                    </div>
+                    <label for="from" class="col-sm-1 control-label">元</label>
+                </div>
+                <div class="form-group trunk-required">
+                    <label class="col-sm-2 control-label"><span class="required">*</span>车辆类型:</label>
+                    <div class="col-sm-10">
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="厢车" checked="checked">厢车
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="平板车">平板车
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="高栏车">高栏车
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="低栏车">低栏车
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="面包车">面包车
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="trunkType" class="trunkType" value="集装车">集装车
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group trunk-required">
+                    <label for="licensePlate" class="col-sm-2 control-label">车牌号码:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="licensePlate" placeholder="比如：粤B123456">
+                    </div>
+                </div>
+                <div class="form-group trunk-required">
+                    <label for="trunkLength" class="col-sm-2 control-label">车长:</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="trunkLength" placeholder="比如：9.6">
+                    </div>
+                    <label class="col-sm-1 control-label">米。</label>
+                    <label class="col-sm-2 control-label">载重:</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="trunkLoad" placeholder="比如：5.4">
+                    </div>
+                    <label class="col-sm-1 control-label">吨</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="from" class="col-sm-2 control-label"><span class="required">*</span>出发地:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control typeahead" id="from" placeholder="比如：广东-广州-天河">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="to" class="col-sm-2 control-label"><span class="required">*</span>目的地:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control typeahead" id="to" placeholder="比如：广东-深圳-南山">
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="time" class="col-sm-2 control-label"><span class="required">*</span>发布时间:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="time" placeholder="比如：2014-04-03 21:20">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="validateTime" class="col-sm-2 control-label"><span class="required">*</span>有效期:</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="validateTime" placeholder="比如： 2 默认2天">
+                    </div>
+                    <label class="col-sm-1 control-label">天</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment" class="col-sm-2 control-label">备注:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="comment" placeholder="比如： 不能倾放">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="op" class="col-sm-2 control-label">操作:</label>
+                    <div class="col-sm-10">
+                        <button type="button" class="btn btn-primary btn-lg confirmBtn">确定提交</button>
+                        <button type="button" class="btn btn-danger btn-lg clearBtn">清空</button>
+                        
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+    <script>
+        (function(b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l;
+            b[l] || (b[l] =
+                function() {
+                    (b[l].q = b[l].q || []).push(arguments)
+                });
+            b[l].l = +new Date;
+            e = o.createElement(i);
+            r = o.getElementsByTagName(i)[0];
+            e.src = '//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X');
+        ga('send', 'pageview');
+    </script>
+
+    <script src="scripts/jquery.js"></script>
+
+    <script src="scripts/plugins_bootstrap.js"></script>
+
+    <script src="scripts/addInfo.js"></script>
+</body>
+
+</html>

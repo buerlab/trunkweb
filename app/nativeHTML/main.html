@@ -1,0 +1,126 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>主页</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+
+    <!-- build:css({.tmp,app}) styles/main_plugin.css -->
+        <link rel="stylesheet" href="bower_components/bootstrap-3-datepicker/css/datepicker3.css" />
+        <link rel="stylesheet" href="bower_components/iCheck/skins/square/blue.css" />
+        <link rel="stylesheet" href="bower_components/kbootstrap-select/bootstrap-select.css" />
+        <link rel="stylesheet" href="bower_components/parsleyjs/src/parsley.css" />
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    <div class="container my-container">
+        <div class="menu col-sm-3">
+            <ul>
+                <li class="big-li">
+                    <a id="sendGoods" href="javascript:void(0);"><span class="glyphicon glyphicon-shopping-cart"></span> 我要发货</a>
+                </li>
+                <li>
+                    <div><p><span class="glyphicon glyphicon-chevron-down"></span> 等待接单 (2)</p></div>
+                    <ul>
+                        <li><a href="javascript:void(0);" class="current">水泥</a></li>
+                        <li><a href="javascript:void(0);">食物</a></li>
+                    </ul>
+                </li>
+                <div class="hr"></div>
+                <li>
+                    <div><a href="javascript:void(0);"><span class="glyphicon glyphicon-list"></span> 历史单据 (10)</a></div>
+                </li>
+                <div class="hr"></div>
+                <li>
+                    <div><p><span class="glyphicon glyphicon-user"></span> 个人资料</p></div>
+                    <ul>
+                        <li><a href="javascript:void(0);">修改资料</a></li>
+                        <li><a href="javascript:void(0);">修改密码</a></li>
+                    </ul>
+                </li>
+                <li class="end-li">
+                </li>
+            </ul>
+        </div>
+        <div class="main col-sm-9">
+            <div class="col-sm-9">
+                <!-- htmlbuild:section sendGoods -->
+                <!-- /htmlbuild -->
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/vendor_main.js -->
+    <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/backbone/backbone.js"></script>
+    <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
+    <script src="bower_components/bootstrap-3-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="bower_components/bootstrap-3-datepicker/js/locales/bootstrap-datepicker.zh-CN.js"></script>
+    <script src="bower_components/iCheck/icheck.js"></script>
+    <script src="bower_components/kbootstrap-select/bootstrap-select.js"></script>
+    <script>
+            window.ParsleyConfig = {
+              errorsWrapper: '<div class="parsley-errors-list"></div>',
+              errorTemplate: '<span></span>'
+            };
+    </script>
+    
+    <script src="bower_components/parsleyjs/dist/parsley.js"></script>
+    <script src="bower_components/parsleyjs/src/i18n/zh_cn.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+
+    <!-- build:js({.tmp,app}) scripts/main.js -->
+    <script src="scripts/utils.js"></script>
+
+    <script src="scripts/login_handler.js"></script>
+
+    <script src="scripts/main.js"></script>
+    <script src="scripts/templates.js"></script>
+    <script src="scripts/models/todo.js"></script>
+    <script src="scripts/collections/todos.js"></script>
+    
+    <script src="scripts/views/todos.js"></script>
+    <script src="scripts/views/todo.js"></script>
+    <script src="scripts/routes/todo2.js"></script>
+
+    <!-- endbuild -->
+</body>
+</html>
