@@ -1,10 +1,10 @@
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\000032}}
+/* line 2, ../../app/styles/typeahead.js-bootstrap.scss */
 .twitter-typeahead .tt-query,
 .twitter-typeahead .tt-hint {
   margin-bottom: 0;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\000036}}
+/* line 6, ../../app/styles/typeahead.js-bootstrap.scss */
 .tt-dropdown-menu {
   min-width: 160px;
   margin-top: 2px;
@@ -25,13 +25,13 @@
   background-clip: padding-box;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\0000326}}
+/* line 26, ../../app/styles/typeahead.js-bootstrap.scss */
 .tt-suggestion {
   display: block;
   padding: 3px 20px;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\0000331}}
+/* line 31, ../../app/styles/typeahead.js-bootstrap.scss */
 .tt-suggestion.tt-is-under-cursor {
   color: #fff;
   background-color: #0081c2;
@@ -44,12 +44,12 @@
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\0000343}}
+/* line 43, ../../app/styles/typeahead.js-bootstrap.scss */
 .tt-suggestion.tt-is-under-cursor a {
   color: #fff;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/typeahead\.js-bootstrap\.scss}line{font-family:\0000347}}
+/* line 47, ../../app/styles/typeahead.js-bootstrap.scss */
 .tt-suggestion p {
   margin: 0;
 }

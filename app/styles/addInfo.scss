@@ -2,10 +2,14 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 
 @import 'sass-bootstrap/lib/bootstrap';
 
-.my-panel{
-    width: 600px;
-    margin: 0 auto;
+.table > tbody > tr > td{
+    max-width: 100px !important; 
+    overflow: hidden !important;
 }
+
+.my-panel{
+}
+
 
 .form-horizontal{
     padding: 20px;
@@ -17,4 +21,7 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 
 .twitter-typeahead{
     width: 100%;
+}
+
+.added-list{
 }

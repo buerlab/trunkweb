@@ -1,20 +1,20 @@
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/base\.scss}line{font-family:\000031}}
+/* line 1, ../../app/styles/base.scss */
 body {
   background-color: #f7f7f6 !important;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/base\.scss}line{font-family:\000035}}
+/* line 5, ../../app/styles/base.scss */
 label.icheck {
   cursor: pointer;
   margin-right: 20px;
   line-height: 32px;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/base\.scss}line{font-family:\000039}}
+/* line 9, ../../app/styles/base.scss */
 label.icheck span {
   margin-left: 10px;
 }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/teddywu\/Documents\/codes\/retrunk\/trunkadmin\/app\/styles\/base\.scss}line{font-family:\0000313}}
+/* line 13, ../../app/styles/base.scss */
 .required-mark {
   color: red;
 }

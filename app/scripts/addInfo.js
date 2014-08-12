@@ -1,7 +1,4 @@
 
-
-
-
 $(function() {
     var $goodsRadio = $("#goodsRadio"),
         $trunkRadio= $("#trunkRadio"),
@@ -20,7 +17,12 @@ $(function() {
         $validateTime = $("#validateTime"),
         $comment = $("#comment"),
         $confirmBtn = $(".confirmBtn"),
-        $clearBtn = $(".clearBtn");
+        $clearBtn = $(".clearBtn"),
+        $timeType = $("#timeType");
+
+    var hasFullScreen = false;
+    var adminUserId = "53e9cd5915a5e45c43813d1c";
+
 
 var Datepattern=function(d,fmt) {           
     var o = {           
@@ -79,7 +81,6 @@ for(var i =0;i<ADDRESS.length;i++){
 }
 
 
-
 var region = new Bloodhound({
               datumTokenizer: Bloodhound.tokenizers.obj.chinese('value'),
               queryTokenizer: Bloodhound.tokenizers.chinese,
@@ -106,9 +107,6 @@ $('.typeahead').typeahead({
 });
 }
 
-
-
-
     function init(){
         initAddressSuggest();   
         var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
@@ -121,14 +119,16 @@ $('.typeahead').typeahead({
     function showTrunkType(){
         $(".goods-required").hide();
         $(".trunk-required").show();
+        $timeType.html("回程时间"); 
     }
 
     function showGoodsType(){
         $(".trunk-required").hide();
         $(".goods-required").show();
+        $timeType.html("发货时间"); 
     }
 
-    function getData(){
+    function getReqParams(){
 
         var data = {};
 
@@ -197,6 +197,8 @@ $('.typeahead').typeahead({
         data.phoneNum = $phoneNum.val();
         data.comment = $comment.val();
         data.senderName = $nickname.val();
+        data.sender = adminUserId;
+        data.userId = adminUserId;
 
         if(data.userType=="owner"){
             if($goodsPrice.val()!=""){
@@ -210,9 +212,12 @@ $('.typeahead').typeahead({
             }
         
         }else if(data.userType=="driver"){
-            if($trunkType.val()!=""){
-                data.trunkType = $trunkType.val();
-            }
+
+            $(".trunkType").each(function(k,v){
+                if(v.checked){
+                data.trunkType = $(v).val();
+                }
+            });
             if($trunkLength.val()!=""){
                 data.trunkLength = $trunkLength.val();
             }
@@ -228,6 +233,7 @@ $('.typeahead').typeahead({
 
         return data;
     }
+
 
         //  requiredParams = {
     //     "userType":unicode,
@@ -254,20 +260,20 @@ $('.typeahead').typeahead({
     function sendBill(){
         var url = "http://115.29.8.74:9288/api/bill/send";
                    
-        var data = getData();
-        if(data==null){
+        var param = getReqParams();
+        if(param==null){
             return;
         }
 
         var jqxhr = $.ajax({
             url: url,
-            data: data,
+            data: param,
             type: "POST",
             dataType: "json",
             success: function(data) {
                 dataProtocolHandler(data,function(data){
                     debugger;
-                    showTips("添加成功");
+                    getBill(param.userType);
                     // location.href = "/";
                 },function(code,msg,data,dataType){
                     
@@ -278,8 +284,132 @@ $('.typeahead').typeahead({
                 errLog && errLog("loginAjax");
             }
         });
-            
     }
+
+
+    function getBill(type){
+        var url = "http://115.29.8.74:9288/api/bill/get";
+        
+        var data = {
+            userId : adminUserId,
+            userType : type
+        }
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: data,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger;
+
+                    if(type == "driver"){
+                        renderDriver(data);
+                    }else{
+                        renderOwner(data);
+                    }
+                    // location.href = "/";
+                },function(code,msg,data,dataType){
+                    
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("loginAjax");
+            }
+        });
+    }
+
+      
+
+    var secondToHour = function(seconds){
+        return seconds/60/24/60 + "天";
+    }
+
+  // <th>称呼</th>
+  // <th>电话号码</th>
+  // <th>车辆类型</th>
+  // <th>车长</th>
+  // <th>载重</th>
+  // <th>车牌</th>
+  // <th>出发地</th>
+  // <th>目的地</th>
+  // <th>回程时间</th>
+  // <th>有效期</th>
+  // <th>备注</th>
+  // <th>操作</th>
+    var renderDriver = function(data){
+        var renderItem = function(data){
+            var template = '<tr id="tr_'+ data.id +'">\
+              <td>'+ data.senderName +'</td>\
+              <td>'+ data.phoneNum +'</td>\
+              <td>'+ data.trunkType +'</td>\
+              <td>'+ data.trunkLength +'</td>\
+              <td>'+ data.trunkLoad +'</td>\
+              <td>'+ data.licensePlate +'</td>\
+              <td>'+ data.fromAddr +'</td>\
+              <td>'+ data.toAddr +'</td>\
+              <td>'+ Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss")    +'</td>\
+              <td>'+ secondToHour(data.validTimeSec)    +'</td>\
+              <td>'+ data.comment  +'</td>\
+              <td>\
+                <div class="btn-group btn-group-lg" data-id= "'+ data.id+'"">\
+                  <button type="button" class="btn btn-danger fail">删除</button>\
+                </div>\
+            </td>\
+            </tr>';
+            return template;
+        }
+
+        $("#trunkList").empty();
+        for (var i = data.length -1; i >=0 ; i--) {
+            $("#trunkList").append(renderItem(data[i]));
+        };
+    }
+
+  // <th>称呼</th>
+  // <th>电话号码</th>
+  // <th>货物名称</th>
+  // <th>重量</th>
+  // <th>目标价格</th>
+  // <th>出发地</th>
+  // <th>目的地</th>
+  // <th>发货时间</th>
+  // <th>有效期</th>
+  // <th>备注</th>
+  // <th>操作</th>
+    var renderOwner = function(data){
+        var renderItem = function(data){
+            var template = '<tr id="tr_'+ data.id +'">\
+              <td>'+ data.senderName +'</td>\
+              <td>'+ data.phoneNum +'</td>\
+              <td>'+ data.material +'</td>\
+              <td>'+ data.weight +'</td>\
+              <td>'+ data.price +'</td>\
+              <td>'+ data.fromAddr +'</td>\
+              <td>'+ data.toAddr +'</td>\
+              <td>'+ Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss")    +'</td>\
+              <td>'+ secondToHour(data.validTimeSec)    +'</td>\
+              <td>'+ data.comment  +'</td>\
+              <td>\
+                <div class="btn-group btn-group-lg" data-id= "'+ data.id+'"">\
+                  <button type="button" class="btn btn-danger fail">删除</button>\
+                </div>\
+            </td>\
+            </tr>';
+            return template;
+        }
+
+        $("#goodsList").empty();
+        for (var i = data.length-1; i >=0 ; i--) {
+            $("#goodsList").append(renderItem(data[i]));
+        };
+    }
+
+    getBill("driver");
+    getBill("owner");
+
 
     function reset(){
         $nickname.val("");
@@ -298,6 +428,9 @@ $('.typeahead').typeahead({
         $validateTime.val(2);
     }
 
+
+
+
     function bindEvent(){
         $goodsRadio.click(function(){
             showGoodsType();
@@ -311,12 +444,107 @@ $('.typeahead').typeahead({
             if(confirm("确定要清空数据吗？")){
                 reset();
             }
-            
+        
         });
         $confirmBtn.click(function(){
             if(confirm("确定要提交吗？")){
                 sendBill();
             }
+        });
+
+        $("#fullscreen").click(function(){
+            if(!hasFullScreen){
+                $("#fullscreen").html("退出全屏");
+                $(".my-panel").hide();
+                $(".added-list").removeClass("col-sm-8");
+                $(".added-list").addClass("col-sm-12");
+                hasFullScreen = true;
+            }else{
+                $("#fullscreen").html("全屏");
+                $(".my-panel").show();
+                $(".added-list").removeClass("col-sm-12");
+                $(".added-list").addClass("col-sm-8");
+                hasFullScreen = false;
+            }
+        });
+
+        $("#goodsList").delegate(".fail","click",function(){
+
+            if(!confirm("确定要删除这条请求吗？")){
+                return;
+            }
+            debugger;
+            var $this = $(this),
+                id = $this.parents().data("id");
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9288/api/bill/remove",
+                data: {
+                    "billid": id,
+                    "userId": adminUserId,
+                    "userType": "owner"
+                },
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        $this.parents().filter("tr").hide("fast", function() {
+                            $(this).remove();
+                        });
+                        // location.href = "/";
+                    },function(code,msg,data,dataType){
+                        if(code == -7){
+                            showTips("账号密码输入有误");
+                        }else{
+                            showTips("未知错误");
+                        }
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("pass verify fail");
+                }
+            });
+            return false;
+        });
+
+        $("#trunkList").delegate(".fail","click",function(){
+            debugger;
+            if(!confirm("确定要删除这条请求吗？")){
+                return;
+            }
+            var $this = $(this),
+                id = $this.parents().data("id");
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9288/api/bill/remove",
+                data: {
+                    "billid": id,
+                    "userId": adminUserId,
+                    "userType": "driver"
+                },
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        $this.parents().filter("tr").hide("fast", function() {
+                            $(this).remove();
+                        });
+                        // location.href = "/";
+                    },function(code,msg,data,dataType){
+                        if(code == -7){
+                            showTips("账号密码输入有误");
+                        }else{
+                            showTips("未知错误");
+                        }
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("pass verify fail");
+                }
+            });
+            return false;
         });
     }
 
