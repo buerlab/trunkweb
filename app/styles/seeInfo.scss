@@ -1,0 +1,38 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
+.main-container{
+    background-color: white;
+    min-height: 300px;
+    display: none;
+}
+
+.summary-period-wrapper{
+    margin-left: 20px;
+}
+
+.all-tr{
+    background-color: #ccc;
+}
+
+.summaryStatCanvasCantainer{
+    margin-left: 20px;
+}
+
+.region-item{
+    display: inline-block;
+    width: 100px;
+}
+.route-item{
+    display: inline-block;
+    width: 150px; 
+}
+
+#toAddStatTable th{
+    min-width: 100px;
+}
+
+#addedStatTable th{
+    min-width: 100px;
+}

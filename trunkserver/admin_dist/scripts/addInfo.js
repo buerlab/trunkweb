@@ -1728,6 +1728,7 @@ function showTips(str){
 function errLog(str){
     debugger;
     console.log("ERROR:" +str);
+    alert(str);
 }
 
 function dataProtocolHandler(data,successCallback,failCallback){
@@ -1832,10 +1833,11 @@ $(function() {
         $confirmBtn = $(".confirmBtn"),
         $clearBtn = $(".clearBtn"),
         $timeType = $("#timeType");
-
-    var hasFullScreen = false;
+    
     var adminUserId = "53e9cd5915a5e45c43813d1c";
-
+    var numPerPage = 10;
+    var addedGoodesMessageData;
+    var addedTrunkMessageData;
 
 var Datepattern=function(d,fmt) {           
     var o = {           
@@ -1870,7 +1872,6 @@ var Datepattern=function(d,fmt) {
     }           
     return fmt;           
 }
-
 
 function initAddressSuggest(){
     var myAddress = []
@@ -1922,9 +1923,9 @@ $('.typeahead').typeahead({
 
     function init(){
         initAddressSuggest();   
-        var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
-        $time.val(time1);
-        $validateTime.val(2);
+        // var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
+        // $time.val(time1);
+        // $validateTime.val(2);
 
         showGoodsType();
     }
@@ -1932,13 +1933,13 @@ $('.typeahead').typeahead({
     function showTrunkType(){
         $(".goods-required").hide();
         $(".trunk-required").show();
-        $timeType.html("回程时间"); 
+        $timeType.html("回程时间:"); 
     }
 
     function showGoodsType(){
         $(".trunk-required").hide();
         $(".goods-required").show();
-        $timeType.html("发货时间"); 
+        $timeType.html("发货时间:"); 
     }
 
     function getReqParams(){
@@ -1963,10 +1964,6 @@ $('.typeahead').typeahead({
             return null;
         }
 
-        if(data.billType=="goods" && $goodsName.val()==""){
-            showTips("货物名称不能为空");
-        }
-
         if($from.val()==""){
             showTips("出发地不能为空");
             return null;
@@ -1978,35 +1975,37 @@ $('.typeahead').typeahead({
         }
 
         if($time.val()==""){
-            showTips("发布时间不能为空");
-            return null;
         }else{
-            var _d = new Date($time.val());
-            if (_d == "Invalid Date"){
-                showTips("发布时间的格式不对");
-                return null;
+            var getDate = function(str){
+                var a = str.split(" ");
+                var b1 = a[0].split("-");
+                var b2 = a[1].split(":");
+                return new Date(b1[0],(b1[1]-1),b1[2],b2[0],b2[1],b2[2])
             }
-
+            try{
+                var _d = getDate($time.val());
+                data.billTime = (+ _d)/1000;//服务器以秒作为单位；
+            }catch(e){
+                return null;
+                showTips("发布时间的格式不对");
+            }
+            
         }
 
         if($validateTime.val()==""){
-            showTips("有效期不能为空");
-            return null;
         }else{
             var _d = +$validateTime.val();
             if (_d == NaN){
                 showTips("有效期的格式不对");
                 return null;
+            }else{
+                data.validTimeSec = _d * 24 * 60 * 60; //服务器以秒作为单位；
             }
 
         }
 
-
-        debugger;
         data.fromAddr = $from.val();
         data.toAddr = $to.val();
-        data.billTime = (+ new Date($time.val()))/1000;//服务器以秒作为单位；
-        data.validTimeSec = (+$validateTime.val()) * 24 * 60 * 60; //服务器以秒作为单位；
         data.phoneNum = $phoneNum.val();
         data.comment = $comment.val();
         data.senderName = $nickname.val();
@@ -2022,13 +2021,17 @@ $('.typeahead').typeahead({
             }
             if($goodsName.val()!=""){
                 data.material = $goodsName.val();
+            }else{
+                data.material = "普货";
             }
         
         }else if(data.userType=="driver"){
 
             $(".trunkType").each(function(k,v){
                 if(v.checked){
-                data.trunkType = $(v).val();
+                    if($(v).val()!="未知车型"){
+                        data.trunkType = $(v).val();
+                    }
                 }
             });
             if($trunkLength.val()!=""){
@@ -2070,7 +2073,33 @@ $('.typeahead').typeahead({
     //     "trunkLoad": unicode,
     //     "licensePlate": unicode,
     // } 
+
     function sendBill(){
+        var url = "http://115.29.8.74:9289/message/send";
+                   
+        var param = getReqParams();
+        if(param==null){
+            return;
+        }
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: param,
+            type: "POST",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger;
+                    sendBill2();
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("/api/bill/send error");
+            }
+        });
+    }
+    function sendBill2(){
         var url = "http://115.29.8.74:9288/api/bill/send";
                    
         var param = getReqParams();
@@ -2086,15 +2115,22 @@ $('.typeahead').typeahead({
             success: function(data) {
                 dataProtocolHandler(data,function(data){
                     debugger;
+                    $confirmBtn.tooltip({
+                        "animation":true,
+                        "placement":"top",
+                        "title":"发送成功"
+                    }).tooltip('show');
+                    setTimeout(function(){
+                        $confirmBtn.tooltip("hide");
+                        $confirmBtn.tooltip("destroy");
+                    },1000);
                     getBill(param.userType);
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    
                 });
             },
 
             error: function(data) {
-                errLog && errLog("loginAjax");
+                errLog && errLog("/api/bill/send error");
             }
         });
     }
@@ -2119,17 +2155,17 @@ $('.typeahead').typeahead({
 
                     if(type == "driver"){
                         renderDriver(data);
+                        addedTrunkMessageData = data;
                     }else{
                         renderOwner(data);
+                        addedGoodesMessageData = data;
                     }
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    
                 });
             },
 
             error: function(data) {
-                errLog && errLog("loginAjax");
+                errLog && errLog("api/bill/get error");
             }
         });
     }
@@ -2153,6 +2189,31 @@ $('.typeahead').typeahead({
   // <th>备注</th>
   // <th>操作</th>
     var renderDriver = function(data){
+
+        var page = page || 1;
+
+        var renderPage = function(data){
+            var pageNum = data.length/ numPerPage;
+
+            var fontTemp = '<ul class="pagination">';
+            var backTemp = '</ul>';
+
+            var html = fontTemp;
+            for(var i =1;i<pageNum+1;i++){
+                if(i ==page){
+                    html += '<li class="active"><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }else{
+                    html += '<li><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }
+                
+            }
+
+            html += backTemp;
+            $(".driverPaginationWrapper").empty();
+            $(".driverPaginationWrapper").append(html);
+            $(".driverPaginationWrapper").data("current",page);
+        }
+
         var renderItem = function(data){
             var template = '<tr id="tr_'+ data.id +'">\
               <td>'+ data.senderName +'</td>\
@@ -2163,11 +2224,11 @@ $('.typeahead').typeahead({
               <td>'+ data.licensePlate +'</td>\
               <td>'+ data.fromAddr +'</td>\
               <td>'+ data.toAddr +'</td>\
-              <td>'+ Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss")    +'</td>\
+              <td>'+ (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "")    +'</td>\
               <td>'+ secondToHour(data.validTimeSec)    +'</td>\
               <td>'+ data.comment  +'</td>\
               <td>\
-                <div class="btn-group btn-group-lg" data-id= "'+ data.id+'"">\
+                <div class="btn-group btn-group-lg" data-usertype="driver" data-id= "'+ data.id+'"">\
                   <button type="button" class="btn btn-danger fail">删除</button>\
                 </div>\
             </td>\
@@ -2175,8 +2236,13 @@ $('.typeahead').typeahead({
             return template;
         }
 
+        var from = (page -1) * numPerPage;
+        var count = count || data.length;
+
         $("#trunkList").empty();
-        for (var i = data.length -1; i >=0 ; i--) {
+
+        renderPage(data);
+        for (var i = data.length-1- from; i >= data.length-from - numPerPage ; i--) {
             $("#trunkList").append(renderItem(data[i]));
         };
     }
@@ -2192,7 +2258,32 @@ $('.typeahead').typeahead({
   // <th>有效期</th>
   // <th>备注</th>
   // <th>操作</th>
-    var renderOwner = function(data){
+    var renderOwner = function(data,page){
+
+        var page = page || 1;
+
+        var renderPage = function(data){
+            var pageNum = data.length/ numPerPage;
+
+            var fontTemp = '<ul class="pagination">';
+            var backTemp = '</ul>';
+
+            var html = fontTemp;
+            for(var i =1;i<pageNum+1;i++){
+                if(i ==page){
+                    html += '<li class="active"><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }else{
+                    html += '<li><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }
+                
+            }
+
+            html += backTemp;
+            $(".ownerPaginationWrapper").empty();
+            $(".ownerPaginationWrapper").append(html);
+            $(".ownerPaginationWrapper").data("current",page);
+        }
+
         var renderItem = function(data){
             var template = '<tr id="tr_'+ data.id +'">\
               <td>'+ data.senderName +'</td>\
@@ -2202,11 +2293,11 @@ $('.typeahead').typeahead({
               <td>'+ data.price +'</td>\
               <td>'+ data.fromAddr +'</td>\
               <td>'+ data.toAddr +'</td>\
-              <td>'+ Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss")    +'</td>\
+              <td>'+ (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "" )   +'</td>\
               <td>'+ secondToHour(data.validTimeSec)    +'</td>\
               <td>'+ data.comment  +'</td>\
               <td>\
-                <div class="btn-group btn-group-lg" data-id= "'+ data.id+'"">\
+                <div class="btn-group btn-group-lg" data-usertype="owner" data-id= "'+ data.id+'"">\
                   <button type="button" class="btn btn-danger fail">删除</button>\
                 </div>\
             </td>\
@@ -2214,15 +2305,81 @@ $('.typeahead').typeahead({
             return template;
         }
 
+        var from = (page -1) * numPerPage;
+        var count = count || data.length;
+
         $("#goodsList").empty();
-        for (var i = data.length-1; i >=0 ; i--) {
+
+        renderPage(data);
+        for (var i = data.length-1- from; i >= data.length-from - numPerPage ; i--) {
             $("#goodsList").append(renderItem(data[i]));
+        };
+    }
+
+
+
+
+    function getToAddMessage(type){
+        var url = "http://115.29.8.74:9289/message/get";
+        
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: null,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    renderToAddMessage(data);
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("getToAddMessage");
+            }
+        });
+    }
+
+     // <th>昵称</th>
+     //  <th>电话号码</th>
+     //  <th>群号</th>
+     //  <th>群名称</th>
+     //  <th>时间</th>
+     //  <th>内容</th>
+     //  <th>操作</th>
+
+    var renderToAddMessage = function(data){
+        var renderItem = function(data){
+            var template = '<tr id="tr_'+ data._id.$oid +'">\
+              <td>'+ data.nickname +'</td>\
+              <td>'+ data.phonenum +'</td>\
+              <td>'+ data.groupname +'</td>\
+              <td>'+ data.groupid +'</td>\
+              <td>'+ Datepattern(new Date(+data.time),"yyyy-MM-dd HH:mm:ss")    +'</td>\
+              <td>'+ data.content  +'</td>\
+              <td>\
+                <div class="btn-group" data-id= "'+ data._id.$oid+'"">\
+                  <button type="button" class="btn btn-danger fail">忽略</button>\
+                  <button type="button" class="btn btn-primary done">完成</button>\
+                  <button type="button" class="btn btn-success smart_add">添加</button>\
+                </div>\
+            </td>\
+            </tr>';
+            return template;
+        }
+
+        $("#toAddMessageBody").empty();
+        var len = data.length>100? 100: data.length;
+
+        for (var i=0;i<data.length;i++){
+            $("#toAddMessageBody").append(renderItem(data[i]));
         };
     }
 
     getBill("driver");
     getBill("owner");
-
+    getToAddMessage();
 
     function reset(){
         $nickname.val("");
@@ -2236,12 +2393,10 @@ $('.typeahead').typeahead({
         $to.val("");
         $comment.val("");
 
-        var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
-        $time.val(time1);
-        $validateTime.val(2);
+        // var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
+        $time.val("");
+        $validateTime.val("");
     }
-
-
 
 
     function bindEvent(){
@@ -2253,33 +2408,96 @@ $('.typeahead').typeahead({
             showTrunkType();
         });
 
+        $("#updateTime").click(function(){
+            var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
+            $time.val(time1);
+        });
+
+        $("#normalGoods").click(function(){
+            $goodsName.val("普货");
+        });
+
+        $("#normalNickname").click(function(){
+            $nickname.val("天天助手");
+        })
+
         $clearBtn.click(function(){
-            if(confirm("确定要清空数据吗？")){
+            // if(confirm("确定要清空数据吗？")){
                 reset();
-            }
+            // }
         
         });
         $confirmBtn.click(function(){
-            if(confirm("确定要提交吗？")){
+            // if(confirm("确定要提交吗？")){
                 sendBill();
+            // }
+        });
+        
+
+        var small_2_on = true;
+        $("#small_2").click(function(){
+            if(small_2_on){
+                $(this).html("展开");
+                small_2_on = false;
+                $("#toAddMessageContainer").hide();
+            }else{
+                $(this).html("收起");
+                small_2_on = true;
+                $("#toAddMessageContainer").show();
             }
         });
 
-        $("#fullscreen").click(function(){
+        var small_on = true;
+        $("#small").click(function(){
+            if(small_on){
+                $(this).html("展开");
+                small_on = false;
+                $("#addedMessageContainer").hide();
+            }else{
+                $(this).html("收起");
+                small_on = true;
+                $("#addedMessageContainer").show();
+            }
+        });
+
+        var hasFullScreen = false;
+        $(".fullscreen").click(function(){
             if(!hasFullScreen){
-                $("#fullscreen").html("退出全屏");
+                $(".fullscreen").html("退出全屏");
                 $(".my-panel").hide();
                 $(".added-list").removeClass("col-sm-8");
                 $(".added-list").addClass("col-sm-12");
                 hasFullScreen = true;
             }else{
-                $("#fullscreen").html("全屏");
+                $(".fullscreen").html("全屏");
                 $(".my-panel").show();
                 $(".added-list").removeClass("col-sm-12");
                 $(".added-list").addClass("col-sm-8");
                 hasFullScreen = false;
             }
         });
+
+
+        var fixed = false;
+        $("#my_panel_fixed").click(function(){
+            if(!fixed){
+                $("#my_panel_fixed").html("滚动");
+                $(".my-panel").css({"position":"fixed"});
+                $(".my-panel").css("top","72px");
+                fixed = true;
+            }else{
+                $("#my_panel_fixed").html("固定");
+                $(".my-panel").css({"position":"inherit"});
+                $(".my-panel").css("top","0px");
+                fixed = false;
+            }
+        });
+        
+        $("#getToAddMessage").click(function(){
+            getToAddMessage();
+        });
+
+
 
         $("#goodsList").delegate(".fail","click",function(){
 
@@ -2289,37 +2507,62 @@ $('.typeahead').typeahead({
             debugger;
             var $this = $(this),
                 id = $this.parents().data("id");
+
+            var tds = $("#tr_"+ id).find("td");
+            var d = {
+                phoneNum : tds.eq(1).html(),
+                fromAddr : tds.eq(5).html(),
+                toAddr : tds.eq(6).html(),
+                userType : $this.parents().data("usertype")
+            }
+
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9288/api/bill/remove",
-                data: {
-                    "billid": id,
-                    "userId": adminUserId,
-                    "userType": "owner"
-                },
+                url: "http://115.29.8.74:9289/addedmessage/delete",
+                data: d,
                 type: "POST",
                 dataType: "json",
                 success: function(data) {
                     dataProtocolHandler(data,function(data){
                         debugger; 
-                        $this.parents().filter("tr").hide("fast", function() {
-                            $(this).remove();
-                        });
                         // location.href = "/";
-                    },function(code,msg,data,dataType){
-                        if(code == -7){
-                            showTips("账号密码输入有误");
-                        }else{
-                            showTips("未知错误");
-                        }
+                        realDelete();
                     });
                 },
 
                 error: function(data) {
-                    errLog && errLog("pass verify fail");
+                    errLog && errLog("api/bill/remove error");
                 }
             });
+
+            var realDelete = function(){
+                var jqxhr = $.ajax({
+                    url: "http://115.29.8.74:9288/api/bill/remove",
+                    data: {
+                        "billid": id,
+                        "userId": adminUserId,
+                        "userType": "owner"
+                    },
+                    type: "POST",
+                    dataType: "json",
+                    success: function(data) {
+                        dataProtocolHandler(data,function(data){
+                            debugger; 
+                            $this.parents().filter("tr").hide("fast", function() {
+                                $(this).remove();
+                            });
+                            // location.href = "/";
+                        });
+                    },
+
+                    error: function(data) {
+                        errLog && errLog("addedmessage/delete error");
+                    }
+                });
+            }
+            
             return false;
         });
+
 
         $("#trunkList").delegate(".fail","click",function(){
             debugger;
@@ -2328,12 +2571,71 @@ $('.typeahead').typeahead({
             }
             var $this = $(this),
                 id = $this.parents().data("id");
+
+            var tds = $("#tr_"+ id).find("td");
+            var d = {
+                phoneNum : tds.eq(1).html(),
+                fromAddr : tds.eq(6).html(),
+                toAddr : tds.eq(7).html(),
+                userType : $this.parents().data("usertype")
+            }
+
+
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9288/api/bill/remove",
+                url: "http://115.29.8.74:9289/addedmessage/delete",
+                data: d,
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        // location.href = "/";
+                        realDelete();
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("addedmessage/delete error");
+                }
+            });
+
+            var realDelete = function(){
+                var jqxhr = $.ajax({
+                    url: "http://115.29.8.74:9288/api/bill/remove",
+                    data: {
+                        "billid": id,
+                        "userId": adminUserId,
+                        "userType": "driver"
+                    },
+                    type: "POST",
+                    dataType: "json",
+                    success: function(data) {
+                        dataProtocolHandler(data,function(data){
+                            debugger; 
+                            $this.parents().filter("tr").hide("fast", function() {
+                                $(this).remove();
+                            });
+                            // location.href = "/";
+                        });
+                    },
+
+                    error: function(data) {
+                        errLog && errLog("api/bill/remove error");
+                    }
+                });
+            }
+            return false;
+        });
+
+        $("#toAddMessageBody").delegate(".fail","click",function(){
+
+            debugger;
+            var $this = $(this),
+                id = $this.parents().data("id");
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9289/message/delete",
                 data: {
-                    "billid": id,
-                    "userId": adminUserId,
-                    "userType": "driver"
+                    "id": id,
                 },
                 type: "POST",
                 dataType: "json",
@@ -2344,27 +2646,119 @@ $('.typeahead').typeahead({
                             $(this).remove();
                         });
                         // location.href = "/";
-                    },function(code,msg,data,dataType){
-                        if(code == -7){
-                            showTips("账号密码输入有误");
-                        }else{
-                            showTips("未知错误");
-                        }
                     });
                 },
 
                 error: function(data) {
-                    errLog && errLog("pass verify fail");
+                    errLog && errLog("/message/delete error");
                 }
             });
             return false;
         });
+        
+        $("#toAddMessageBody").delegate(".done","click",function(){
+
+            debugger;
+            var $this = $(this),
+                id = $this.parents().data("id");
+
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9289/message/done",
+                data: {
+                    "id": id,
+                },
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        $this.parents().filter("tr").hide("fast", function() {
+                            $(this).remove();
+                        });
+                        // location.href = "/";
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("message/done error");
+                }
+            });
+            return false;
+        });
+
+        $("#toAddMessageBody").delegate(".smart_add","click",function(){
+            var $this = $(this),
+                id = $this.parents().data("id");
+
+            var $tds = $("#tr_" + id).find("td");
+            reset();
+            $nickname.val($tds.eq(0).html());
+            $phoneNum.val($tds.eq(1).html().split("-").join(""));
+            // $time.val($tds.eq(2).html());
+
+            var a = $tds.eq(5).html().split("<br>").join();
+            function isImportantData(str){
+                var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
+                var ret = pattern.exec(str);
+                if(ret){
+                    return ret[0];
+                }else{
+                    return false;
+                }
+            }
+
+            function getWeight(str){
+                var pattern=/\d+吨|\d+.\d+吨/;
+                var ret = pattern.exec(str);
+                if(ret){
+                    return ret[0];
+                }else{
+                    return false;
+                }
+            }
+
+            var weight = getWeight(a);
+
+            if(weight){
+                $goodsWeight.val(weight.split("吨").join(""));
+            }
+
+            var phone = isImportantData(a);
+            if(phone){
+                a = a.split(phone).join();
+                $comment.val(a);
+            }else{
+                $comment.val(a);
+            }
+
+
+        });
+
+        $(".ownerPaginationWrapper").delegate(".pageLi","click",function(){
+            var index = +$(this).html();
+            $(".ownerPaginationWrapper").data("current",index);
+            renderOwner(addedGoodesMessageData,index);
+        });
+
+        $(".driverPaginationWrapper").delegate(".pageLi","click",function(){
+            var index = +$(this).html();
+            $(".driverPaginationWrapper").data("current",index);
+            renderDriver(addedTrunkMessageData,index);
+        });
+
+        window.onscroll = function () { 
+            var top = document.documentElement.scrollTop || document.body.scrollTop;
+            if(top>0 && fixed){
+                $(".my-panel").css("top", "10px");
+            }else{
+                if(fixed){
+                    $(".my-panel").css("top","72px");
+                }else{
+                    $(".my-panel").css("top","0px");
+                }
+            }
+        }
     }
-
-
-
-
-
 
     bindEvent();
     init();

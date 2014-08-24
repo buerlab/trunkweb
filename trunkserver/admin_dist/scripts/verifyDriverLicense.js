@@ -6,6 +6,7 @@ function showTips(str){
 function errLog(str){
     debugger;
     console.log("ERROR:" +str);
+    alert(str);
 }
 
 function dataProtocolHandler(data,successCallback,failCallback){

@@ -2,17 +2,27 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 
 @import 'sass-bootstrap/lib/bootstrap';
 
-.table > tbody > tr > td{
+#addedMessageContainer .table > tbody > tr > td{
     max-width: 100px !important; 
     overflow: hidden !important;
 }
 
+// .toAddMessageContainer .table > tbody > tr > td{
+//     max-width: 100px !important; 
+//     overflow: hidden !important;
+// }
+
+
+
 .my-panel{
+    .form-group{
+        margin-bottom: 5px !important;
+    }
 }
 
 
 .form-horizontal{
-    padding: 20px;
+    padding: 5px 20px 5px 20px;
 }
 
 .required{
@@ -24,4 +34,12 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 }
 
 .added-list{
+    float: right !important;
+}
+.ownerPaginationWrapper{
+    text-align: center;
+}
+
+.driverPaginationWrapper{
+    text-align: center;
 }

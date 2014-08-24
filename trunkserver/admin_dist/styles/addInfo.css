@@ -7629,22 +7629,42 @@ td.visible-print {
   }
 }
 /* line 5, ../../app/styles/addInfo.scss */
-.table > tbody > tr > td {
+#addedMessageContainer .table > tbody > tr > td {
   max-width: 100px !important;
   overflow: hidden !important;
 }
 
-/* line 14, ../../app/styles/addInfo.scss */
-.form-horizontal {
-  padding: 20px;
+/* line 18, ../../app/styles/addInfo.scss */
+.my-panel .form-group {
+  margin-bottom: 5px !important;
 }
 
-/* line 18, ../../app/styles/addInfo.scss */
+/* line 24, ../../app/styles/addInfo.scss */
+.form-horizontal {
+  padding: 5px 20px 5px 20px;
+}
+
+/* line 28, ../../app/styles/addInfo.scss */
 .required {
   color: red;
 }
 
-/* line 22, ../../app/styles/addInfo.scss */
+/* line 32, ../../app/styles/addInfo.scss */
 .twitter-typeahead {
   width: 100%;
+}
+
+/* line 36, ../../app/styles/addInfo.scss */
+.added-list {
+  float: right !important;
+}
+
+/* line 39, ../../app/styles/addInfo.scss */
+.ownerPaginationWrapper {
+  text-align: center;
+}
+
+/* line 43, ../../app/styles/addInfo.scss */
+.driverPaginationWrapper {
+  text-align: center;
 }
