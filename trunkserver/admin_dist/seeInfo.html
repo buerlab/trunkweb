@@ -9,38 +9,24 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- build:css(app) styles/ie6.css -->
     <!--[if lte IE 6]>
-  <link rel="stylesheet" type="text/css" href="bower_components/bootstrap-ie/bootstrap/css/bootstrap-ie6.css">
-  <link rel="stylesheet" type="text/css" href="bower_components/bootstrap-ie/bootstrap/css/ie.css">
-<![endif]-->
-    <!-- endbuild -->
+    <link rel="stylesheet" href="styles/ie6.css">
+    <![endif]-->
 
-    <!-- build:css(.tmp) styles/base.css -->
     <link rel="stylesheet" href="styles/base.css">
-    <!-- endbuild -->
 
-    <!-- build:css(.tmp) styles/seeInfo.css -->
     <link rel="stylesheet" href="styles/seeInfo.css">
-    <!-- endbuild -->
 
 
-    <!-- build:js scripts/vendor/modernizr.js -->
-    <script src="bower_components/modernizr/modernizr.js"></script>
-    <!-- endbuild -->
+    <script src="scripts/vendor/modernizr.js"></script>
 
-    <!-- build:js scripts/compatible.js -->
     <!--[if lt IE 9]>
-    <script src="bower_components/html5shiv/dist/html5shiv.js"></script>
-    <script src="bower_components/respond/src/respond.js"></script>
-<![endif]-->
-    <!-- endbuild -->
+    <script src="scripts/compatible.js"></script>
+    <![endif]-->
 
-    <!-- build:js scripts/bootstrap-ie.js -->
     <!--[if lte IE 6]>
-    <script type="text/javascript" src="bower_components/bootstrap-ie/js/bootstrap-ie.js"></script>
-<![endif]-->
-    <!-- endbuild -->
+    <script src="scripts/bootstrap-ie.js"></script>
+    <![endif]-->
 </head>
 
 <body>
@@ -120,8 +106,8 @@
                     <button type="button" class="summaryStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
                 </div>
                 <span class="summaryStat-period-wrapper">
-                    从<input type="date" placeholder="起始日期" id="summaryStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="summaryStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="summaryStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="summaryStat-date-to">
                     <a herf="javascript:void(0);" class="btn btn-primary" id="summaryStat-date-confirm">确定</a>
                   </span>
                 <table class="table" id="summaryStatTable">
@@ -157,10 +143,10 @@
                     <button type="button" class="editorStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
                 </div>
                 <span class="editorStat-period-wrapper">
-                    从<input type="date" placeholder="起始日期" id="editorStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="editorStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="editorStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="editorStat-date-to">
 
-                    筛选<input type="text" placeholder="teddywu" id="editorStat-input-editor"></input>
+                    筛选<input type="text" placeholder="teddywu" id="editorStat-input-editor">
                     <a herf="javascript:void(0);" class="btn btn-primary" id="editorStat-date-confirm">确定</a>
                 </span>
                 <table class="table" id="editorStatTable">
@@ -206,10 +192,10 @@
                 </div>
 
                 <span class="regionStat-period-wrapper">
-                    从<input type="date" placeholder="起始日期" id="regionStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="regionStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="regionStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="regionStat-date-to">
 
-                    筛选<input type="text" placeholder="广州" id="regionStat-input-search"></input>
+                    筛选<input type="text" placeholder="广州" id="regionStat-input-search">
                     <a herf="javascript:void(0);" class="btn btn-primary" id="regionStat-region-confirm">确定</a>
                 </span>
                 <table class="table" id="regionStatTable">
@@ -223,7 +209,7 @@
                         <tr>
                             <td>2014年8月22日</td>
                             <td>天河[0,1]</td>
-                    </tbody>
+                    </tr></tbody>
                 </table>
                 <div id="regionStatCanvasCantainer">
                 </div>
@@ -249,10 +235,10 @@
                 </div>
 
                 <span class="routeStat-period-wrapper">
-                    从<input type="date" placeholder="起始日期" id="routeStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="routeStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="routeStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="routeStat-date-to">
 
-                    筛选<input type="text" placeholder="广州" id="routeStat-input-search"></input>
+                    筛选<input type="text" placeholder="广州" id="routeStat-input-search">
                     <a herf="javascript:void(0);" class="btn btn-primary" id="routeStat-region-confirm">确定</a>
                 </span>
                 <table class="table" id="routeStatTable">
@@ -266,7 +252,7 @@
                         <tr>
                             <td>2014年8月22日</td>
                             <td>天河[0,1]</td>
-                    </tbody>
+                    </tr></tbody>
                 </table>
                 <div id="routeStatCanvasCantainer">
                 </div>
@@ -281,10 +267,10 @@
                     <button type="button" class="groupStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
                 </div>
                 <span class="groupStat-period-wrapper">
-                    从<input type="date" placeholder="起始日期" id="groupStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="groupStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="groupStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="groupStat-date-to">
 
-                    筛选<input type="text" placeholder="找货找车" id="groupStat-input-group"></input>
+                    筛选<input type="text" placeholder="找货找车" id="groupStat-input-group">
                     <a herf="javascript:void(0);" class="btn btn-primary" id="groupStat-date-confirm">确定</a>
                 </span>
                 <table class="table" id="groupStatTable">
@@ -323,12 +309,12 @@
                 </div>
                 <span class="toAddStat-period-wrapper">
 
-                    从<input type="date" placeholder="起始日期" id="toAddStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="toAddStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="toAddStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="toAddStat-date-to">
 
-                    筛选<input type="text" placeholder="关键字" id="toAddStat-input-keyword"></input>
+                    筛选<input type="text" placeholder="关键字" id="toAddStat-input-keyword">
 
-                    每页显示<input type="text" placeholder="默认50" id="toAddStat-input-perpage" value="50"></input>个
+                    每页显示<input type="text" placeholder="默认50" id="toAddStat-input-perpage" value="50">个
 
                     <a herf="javascript:void(0);" class="btn btn-primary" id="toAddStat-confirm">确定</a>
                 </span>
@@ -370,15 +356,15 @@
                 </div>
                 <span class="addedStat-period-wrapper">
 
-                    从<input type="date" placeholder="起始日期" id="addedStat-date-from"></input> 
-                    到<input type="date" placeholder="结束日期" id="addedStat-date-to"></input>
+                    从<input type="date" placeholder="起始日期" id="addedStat-date-from"> 
+                    到<input type="date" placeholder="结束日期" id="addedStat-date-to">
 
-                    <input type="text" placeholder="出发地" id="addedStat-addr-from"></input>
-                    <input type="text" placeholder="目的地" id="addedStat-addr-to"></input>
+                    <input type="text" placeholder="出发地" id="addedStat-addr-from">
+                    <input type="text" placeholder="目的地" id="addedStat-addr-to">
 
-                    筛选<input type="text" placeholder="关键字" id="addedStat-input-keyword"></input>
+                    筛选<input type="text" placeholder="关键字" id="addedStat-input-keyword">
 
-                    每页显示<input type="text" placeholder="默认50" id="addedStat-input-perpage" value="50"></input>个
+                    每页显示<input type="text" placeholder="默认50" id="addedStat-input-perpage" value="50">个
 
                     <a herf="javascript:void(0);" class="btn btn-primary" id="addedStat-confirm">确定</a>
                 </span>
@@ -432,44 +418,13 @@
         ga('send', 'pageview');
     </script>
 
-    <!-- build:js scripts/jquery.js -->
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
-    <!-- endbuild -->
+    <script src="scripts/jquery.js"></script>
 
-    <!-- build:js scripts/vendor_seeInfo.js -->
-    <script src="bower_components/Chart.js-master/Chart.js"></script>
-    <!-- endbuild -->
+    <script src="scripts/vendor_seeInfo.js"></script>
 
-    <!-- build:js scripts/plugins_bootstrap.js -->
-    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
-    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
-    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
-    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
-    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
-    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
-    <script src="bower_components/sass-bootstrap/js/button.js"></script>
-    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
-    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
-    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
-    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
-    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
-    <!-- endbuild -->
+    <script src="scripts/plugins_bootstrap.js"></script>
 
-    <!-- build:js({.tmp,app}) scripts/seeInfo.js -->
-    <script src="scripts/region.js"></script>
-    <script src="scripts/utils.js"></script>
-    <script src="scripts/login_handler.js"></script>
-
-    <script src="scripts/seeInfo_common.js"></script>
-    <script src="scripts/seeInfo_summary.js"></script>
-    <script src="scripts/seeInfo_editor.js"></script>
-    <script src="scripts/seeInfo_group.js"></script>
-    <script src="scripts/seeInfo_region.js"></script>
-    <script src="scripts/seeInfo_route.js"></script>
-    <script src="scripts/seeInfo_toadd.js"></script>
-    <script src="scripts/seeInfo_added.js"></script>
-    <!-- endbuild -->
+    <script src="scripts/seeInfo.js"></script>
 </body>
 
 </html>

@@ -19,27 +19,11 @@ $(function() {
         $confirmBtn = $(".confirmBtn"),
         $clearBtn = $(".clearBtn"),
         $timeType = $("#timeType");
-
+    
     var adminUserId = "53e9cd5915a5e45c43813d1c";
     var numPerPage = 10;
-    var modifyingId = null;
-
-    function isPhoneData(str){
-        var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
-        var ret = pattern.exec(str);
-        if(ret){
-            return ret[0];
-        }else{
-            return false;
-        }
-    }
-    var safeRender =function(key){
-        if (key){
-            return key;
-        }else{
-            return "";
-        }
-    }
+    var addedGoodesMessageData;
+    var addedTrunkMessageData;
 
 var Datepattern=function(d,fmt) {           
     var o = {           
@@ -164,13 +148,7 @@ $('.typeahead').typeahead({
         if($phoneNum.val()==""){
             showTips("电话号码不能为空");
             return null;
-        }else{
-            if(!isPhoneData($phoneNum.val())){
-                showTips("电话号码格式");
-                return null
-            }
         }
-
 
         if($from.val()==""){
             showTips("出发地不能为空");
@@ -202,32 +180,6 @@ $('.typeahead').typeahead({
             }
         }
 
-        if(+$trunkLength.val() +"" == "NaN"){
-            showTips("货车必须是数字");
-            return null;
-        }
-
-        if(+$validateTime.val() +"" == "NaN"){
-            showTips("有效期必须是数字");
-            return null;
-        }
-
-        if(+$goodsWeight.val() +"" == "NaN"){
-            showTips("重量必须是数字");
-            return null;
-        }
-
-        if(+$goodsPrice.val() +"" == "NaN"){
-            showTips("货物价格必须是数字");
-            return null;
-        }
-
-        if(+$trunkLoad.val() +"" == "NaN"){
-            showTips("载重必须是数字");
-            return null;
-        }
-
-
         if($time.val()==""){
         }else{
             var getDate = function(str){
@@ -243,6 +195,7 @@ $('.typeahead').typeahead({
                 return null;
                 showTips("发布时间的格式不对");
             }
+            
         }
 
         if($validateTime.val()==""){
@@ -268,7 +221,7 @@ $('.typeahead').typeahead({
         data.userId = adminUserId;
         data.qqgroup = $("#qqgroup").val();
         data.qqgroupid = $("#qqgroupid").val();
-        data.rawText = $("#rawText").val();
+
         if(data.userType=="owner"){
             if($goodsPrice.val()!=""){
                 data.price = $goodsPrice.val();
@@ -357,45 +310,259 @@ $('.typeahead').typeahead({
                         $confirmBtn.tooltip("destroy");
                     },1000);
 
-                    // sendBill2();
+                    sendBill2();
                 });
             },
+
             error: function(data) {
                 errLog && errLog("/api/bill/send error");
             }
         });
-
-        if(modifyingId){
-            var urlModify = "http://115.29.8.74:9289/message/modify";
-
-            var jqxhr = $.ajax({
-                url: urlModify,
-                data: {
-                    id : modifyingId
-                },
-                type: "POST",
-                dataType: "json",
-                success: function(data) {
-                    dataProtocolHandler(data,function(data){
-                        debugger;
-                        $("#tr_"+modifyingId).hide("fast", function() {
-                            $(this).remove();
-                        });
-                        modifyingId = null;
-                    });
-                },
-                error: function(data) {
-                    errLog && errLog("/api/bill/send error");
-                    modifyingId = null;
-                }
-            });
+    }
+    function sendBill2(){
+        var url = "http://115.29.8.74:9288/api/bill/send";
+                   
+        var param = getReqParams();
+        if(param==null){
+            return;
         }
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: param,
+            type: "POST",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger;
+                    getBill(param.userType);
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("/api/bill/send error");
+            }
+        });
     }
 
+
+    function getBill(type){
+        var url = "http://115.29.8.74:9288/api/bill/get";
+        
+        var data = {
+            userId : adminUserId,
+            userType : type
+        }
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: data,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger;
+
+                    if(type == "driver"){
+                        renderDriver(data);
+                        addedTrunkMessageData = data;
+                    }else{
+                        renderOwner(data);
+                        addedGoodesMessageData = data;
+                    }
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("api/bill/get error");
+            }
+        });
+    }
+
+    function getBill2(type){
+        var url = "http://115.29.8.74:9289/message/getVerifying";
+        
+        var data = {
+            userType : type,
+            username : G_data.admin.username 
+        }
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: data,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger;
+
+                    if(type == "driver"){
+                        renderDriver(data);
+                        addedTrunkMessageData = data;
+                    }else{
+                        renderOwner(data);
+                        addedGoodesMessageData = data;
+                    }
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("api/bill/get error");
+            }
+        });
+    }
+
+      
 
     var secondToHour = function(seconds){
         return seconds/60/24/60 + "天";
     }
+
+  // <th>称呼</th>
+  // <th>电话号码</th>
+  // <th>车辆类型</th>
+  // <th>车长</th>
+  // <th>载重</th>
+  // <th>车牌</th>
+  // <th>出发地</th>
+  // <th>目的地</th>
+  // <th>回程时间</th>
+  // <th>有效期</th>
+  // <th>备注</th>
+  // <th>操作</th>
+    var renderDriver = function(data){
+
+        var page = page || 1;
+
+        var renderPage = function(data){
+            var pageNum = data.length/ numPerPage;
+
+            var fontTemp = '<ul class="pagination">';
+            var backTemp = '</ul>';
+
+            var html = fontTemp;
+            for(var i =1;i<pageNum+1;i++){
+                if(i ==page){
+                    html += '<li class="active"><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }else{
+                    html += '<li><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }
+                
+            }
+
+            html += backTemp;
+            $(".driverPaginationWrapper").empty();
+            $(".driverPaginationWrapper").append(html);
+            $(".driverPaginationWrapper").data("current",page);
+        }
+
+        var renderItem = function(data){
+            var template = '<tr id="tr_'+ data.id +'">\
+              <td>'+ data.senderName +'</td>\
+              <td>'+ data.phoneNum +'</td>\
+              <td>'+ data.trunkType +'</td>\
+              <td>'+ data.trunkLength +'</td>\
+              <td>'+ data.trunkLoad +'</td>\
+              <td>'+ data.licensePlate +'</td>\
+              <td>'+ data.fromAddr +'</td>\
+              <td>'+ data.toAddr +'</td>\
+              <td>'+ (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "")    +'</td>\
+              <td>'+ secondToHour(data.validTimeSec)    +'</td>\
+              <td>'+ data.comment  +'</td>\
+              <td>\
+                <div class="btn-group btn-group-lg" data-usertype="driver" data-id= "'+ data.id+'"">\
+                  <button type="button" class="btn btn-danger fail">删除</button>\
+                </div>\
+            </td>\
+            </tr>';
+            return template;
+        }
+
+        var from = (page -1) * numPerPage;
+        var count = count || data.length;
+
+        $("#trunkList").empty();
+
+        renderPage(data);
+        for (var i = data.length-1- from; i >= data.length-from - numPerPage ; i--) {
+            $("#trunkList").append(renderItem(data[i]));
+        };
+    }
+
+  // <th>称呼</th>
+  // <th>电话号码</th>
+  // <th>货物名称</th>
+  // <th>重量</th>
+  // <th>目标价格</th>
+  // <th>出发地</th>
+  // <th>目的地</th>
+  // <th>发货时间</th>
+  // <th>有效期</th>
+  // <th>备注</th>
+  // <th>操作</th>
+    var renderOwner = function(data,page){
+
+        var page = page || 1;
+
+        var renderPage = function(data){
+            var pageNum = data.length/ numPerPage;
+
+            var fontTemp = '<ul class="pagination">';
+            var backTemp = '</ul>';
+
+            var html = fontTemp;
+            for(var i =1;i<pageNum+1;i++){
+                if(i ==page){
+                    html += '<li class="active"><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }else{
+                    html += '<li><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
+                }
+                
+            }
+
+            html += backTemp;
+            $(".ownerPaginationWrapper").empty();
+            $(".ownerPaginationWrapper").append(html);
+            $(".ownerPaginationWrapper").data("current",page);
+        }
+
+        var renderItem = function(data){
+            var template = '<tr id="tr_'+ data.id +'">\
+              <td>'+ data.senderName +'</td>\
+              <td>'+ data.phoneNum +'</td>\
+              <td>'+ data.material +'</td>\
+              <td>'+ data.weight +'</td>\
+              <td>'+ data.price +'</td>\
+              <td>'+ data.fromAddr +'</td>\
+              <td>'+ data.toAddr +'</td>\
+              <td>'+ (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "" )   +'</td>\
+              <td>'+ secondToHour(data.validTimeSec)    +'</td>\
+              <td>'+ data.comment  +'</td>\
+              <td>\
+                <div class="btn-group btn-group-lg" data-usertype="owner" data-id= "'+ data.id+'"">\
+                  <button type="button" class="btn btn-danger fail">删除</button>\
+                </div>\
+            </td>\
+            </tr>';
+            return template;
+        }
+
+        var from = (page -1) * numPerPage;
+        var count = count || data.length;
+
+        $("#goodsList").empty();
+
+        renderPage(data);
+        for (var i = data.length-1- from; i >= data.length-from - numPerPage ; i--) {
+            $("#goodsList").append(renderItem(data[i]));
+        };
+    }
+
+
+
 
     function getToAddMessage(type){
         var url = "http://115.29.8.74:9289/message/get";
@@ -455,106 +622,9 @@ $('.typeahead').typeahead({
         };
     }
 
-    
-
-
-    var renderRefuseData = function(data){
-        // renderPage(data,page);
-
-        $("#refuseMessageContainer tbody").empty();
-
-        // <th>编辑者</th>
-        // <th>提交时间</th>
-        // <th>消息类型</th>
-        // <th>称呼</th>
-        // <th>电话号码</th>
-        // <th>出发地</th>
-        // <th>目的地</th>
-        // <th>详细信息</th>
-        // <th>备注</th>
-        // <th>操作</th>
-
-        $.each(data,function(k,v){
-
-            var renderUserType = function(usertype){
-                if(usertype=="driver"){
-                    return "车源(求货)";
-                }else if(usertype=="owner"){
-                    return "货源(求车)";
-                }else{
-                    return "";
-                }
-            }
-
-
-            var renderInfo = function(data){
-                var ret = "";
-                if (data.billType == "trunk"){
-                    ret += "车长:" + safeRender(data.trunkLength) + ";";
-                    ret += "车辆类型:" + safeRender(data.trunkType) + ";";
-                    ret += "回程时间:" + safeRender(data.billTime) + ";";
-                }
-                if (data.billType == "goods"){
-                    ret += "货重:" + safeRender(data.weight) + ";";
-                    ret += "货物名称:" + safeRender(data.material) + ";";
-                    ret += "发货时间:" + safeRender(data.billTime) + ";";
-                }
-                ret += "有效期:" + safeRender(data.validTimeSec) + ";";
-                return ret;
-            }
-
-            var renderItem = function(data){
-
-                var dataStr = JSON.stringify(data);
-
-                var template = '<tr id="tr_'+ data._id.$oid +'">\
-                <td>'+ (data.sendTime ?  Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") +'</td>\
-                <td>'+ renderUserType(data.userType) +'</td>\
-                <td>'+ data.senderName +'</td>\
-                <td>'+ data.phoneNum +'</td>\
-                <td>'+ data.fromAddr +'</td>\
-                <td>'+ data.toAddr +'</td>\
-                <td>'+ renderInfo(data) +'</td>\
-                <td>'+ (data.comment? data.comment:"无") +'</td>\
-                <td>'+ (data.reason ? data.reason :"无")  +'</td>\
-                <td>'+ (data.rawText? data.rawText:"无") +'</td>\
-                <td>\
-                    <div class="btn-group" data-data=\'' + dataStr + '\' data-id= "'+ data._id.$oid+'"">\
-                      <button type="button" class="btn btn-primary modify">修改</button>\
-                       <button type="button" class="btn btn-danger giveup">放弃</button>\
-                    </div>\
-                </td>\
-                </tr>';
-                return template;
-            } 
-
-            $("#refuseMessageContainer tbody").append(renderItem(v));
-        });
-    }
-
-    var getRefuseMessage= function(){
-        var url = "http://115.29.8.74:9289/message/getRefuse";
-
-        var jqxhr = $.ajax({
-            url: url,
-            data: null,
-            type: "GET",
-            dataType: "json",
-            success: function(data) {
-                dataProtocolHandler(data,function(data){
-                    debugger;
-                    renderRefuseData(data);
-                    // showRegionChart(confirmInfoArray);
-                });
-            },
-
-            error: function(data) {
-                errLog && errLog("getData() error");
-            }
-        });
-    }
-
-
+    getBill("driver");
+    getBill("owner");
+    getToAddMessage();
 
     function reset(){
         $nickname.val("");
@@ -573,7 +643,6 @@ $('.typeahead').typeahead({
         $validateTime.val("");
         $("#qqgroupid").val("");
         $("#qqgroup").val("");
-        $("#rawText").val("");
     }
 
 
@@ -637,6 +706,18 @@ $('.typeahead').typeahead({
             }
         });
 
+        var small_on = true;
+        $("#small").click(function(){
+            if(small_on){
+                $(this).html("展开");
+                small_on = false;
+                $("#addedMessageContainer").hide();
+            }else{
+                $(this).html("收起");
+                small_on = true;
+                $("#addedMessageContainer").show();
+            }
+        });
 
         var hasFullScreen = false;
         $(".fullscreen").click(function(){
@@ -656,19 +737,17 @@ $('.typeahead').typeahead({
         });
 
 
-        var fixed = true;
-        $(".my-panel").css({"position":"fixed"});
-
+        var fixed = false;
         $("#my_panel_fixed").click(function(){
             if(!fixed){
                 $("#my_panel_fixed").html("滚动");
                 $(".my-panel").css({"position":"fixed"});
-                // $(".my-panel").css("top","72px");
+                $(".my-panel").css("top","72px");
                 fixed = true;
             }else{
                 $("#my_panel_fixed").html("固定");
                 $(".my-panel").css({"position":"inherit"});
-                // $(".my-panel").css("top","0px");
+                $(".my-panel").css("top","0px");
                 fixed = false;
             }
         });
@@ -677,6 +756,135 @@ $('.typeahead').typeahead({
             getToAddMessage();
         });
 
+
+
+        $("#goodsList").delegate(".fail","click",function(){
+
+            if(!confirm("确定要删除这条请求吗？")){
+                return;
+            }
+            debugger;
+            var $this = $(this),
+                id = $this.parents().data("id");
+
+            var tds = $("#tr_"+ id).find("td");
+            var d = {
+                phoneNum : tds.eq(1).html(),
+                fromAddr : tds.eq(5).html(),
+                toAddr : tds.eq(6).html(),
+                userType : $this.parents().data("usertype")
+            }
+
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9289/addedmessage/delete",
+                data: d,
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        // location.href = "/";
+                        realDelete();
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("api/bill/remove error");
+                }
+            });
+
+            var realDelete = function(){
+                var jqxhr = $.ajax({
+                    url: "http://115.29.8.74:9288/api/bill/remove",
+                    data: {
+                        "billid": id,
+                        "userId": adminUserId,
+                        "userType": "owner"
+                    },
+                    type: "POST",
+                    dataType: "json",
+                    success: function(data) {
+                        dataProtocolHandler(data,function(data){
+                            debugger; 
+                            $this.parents().filter("tr").hide("fast", function() {
+                                $(this).remove();
+                            });
+                            // location.href = "/";
+                        });
+                    },
+
+                    error: function(data) {
+                        errLog && errLog("addedmessage/delete error");
+                    }
+                });
+            }
+            
+            return false;
+        });
+
+
+        $("#trunkList").delegate(".fail","click",function(){
+            debugger;
+            if(!confirm("确定要删除这条请求吗？")){
+                return;
+            }
+            var $this = $(this),
+                id = $this.parents().data("id");
+
+            var tds = $("#tr_"+ id).find("td");
+            var d = {
+                phoneNum : tds.eq(1).html(),
+                fromAddr : tds.eq(6).html(),
+                toAddr : tds.eq(7).html(),
+                userType : $this.parents().data("usertype")
+            }
+
+
+            var jqxhr = $.ajax({
+                url: "http://115.29.8.74:9289/addedmessage/delete",
+                data: d,
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        // location.href = "/";
+                        realDelete();
+                    });
+                },
+
+                error: function(data) {
+                    errLog && errLog("addedmessage/delete error");
+                }
+            });
+
+            var realDelete = function(){
+                var jqxhr = $.ajax({
+                    url: "http://115.29.8.74:9288/api/bill/remove",
+                    data: {
+                        "billid": id,
+                        "userId": adminUserId,
+                        "userType": "driver"
+                    },
+                    type: "POST",
+                    dataType: "json",
+                    success: function(data) {
+                        dataProtocolHandler(data,function(data){
+                            debugger; 
+                            $this.parents().filter("tr").hide("fast", function() {
+                                $(this).remove();
+                            });
+                            // location.href = "/";
+                        });
+                    },
+
+                    error: function(data) {
+                        errLog && errLog("api/bill/remove error");
+                    }
+                });
+            }
+            return false;
+        });
 
         $("#toAddMessageBody").delegate(".fail","click",function(){
 
@@ -738,7 +946,6 @@ $('.typeahead').typeahead({
         });
 
         $("#toAddMessageBody").delegate(".smart_add","click",function(){
-            modifyingId = null;
             var $this = $(this),
                 id = $this.parents().data("id");
 
@@ -749,8 +956,6 @@ $('.typeahead').typeahead({
 
             $("#qqgroup").val($tds.eq(2).html());
             $("#qqgroupid").val($tds.eq(3).html());
-            $("#rawText").val($tds.eq(5).html());
-
             // $time.val($tds.eq(2).html());
 
             var a = $tds.eq(5).html().split("<br>").join();
@@ -792,94 +997,20 @@ $('.typeahead').typeahead({
             }else{
                 $comment.val(a);
             }
-        });
 
-  // var $goodsRadio = $("#goodsRadio"),
-  //       $trunkRadio= $("#trunkRadio"),
-  //       $nickname = $("#nickname"),
-  //       $phoneNum = $("#phoneNum"),
-  //       $goodsName = $("#goodsName"),
-  //       $goodsWeight = $("#goodsWeight"),
-  //       $goodsPrice = $("#goodsPrice"),
-  //       $trunkType = $(".trunkType"),
-  //       $licensePlate = $("#licensePlate"),
-  //       $trunkLength = $("#trunkLength"),
-  //       $trunkLoad = $("#trunkLoad"),
-  //       $from = $("#from"),
-  //       $to = $("#to"),
-  //       $time = $("#time"),
-  //       $validateTime = $("#validateTime"),
-  //       $comment = $("#comment"),
-  //       $confirmBtn = $(".confirmBtn"),
-  //       $clearBtn = $(".clearBtn"),
-  //       $timeType = $("#timeType");
-
-        $("#refuseMessageContainer").delegate(".modify","click",function(){
-            $this = $(this);
-            modifyingId = $this.parents().data("id");
-            var data = $this.parents().data("data");
-            reset();
-            debugger;
-            $(".tmp_textarea").html(safeRender(data.rawText));
-
-            $nickname.val(safeRender(data.senderName));
-            $phoneNum.val(safeRender(data.phoneNum));
-
-
-            $("#qqgroup").val(safeRender(data.qqgroup));
-            $("#qqgroupid").val(safeRender(data.qqgroupid));
-            $("#rawText").val(safeRender(data.rawText));
-            $comment.val(safeRender(data.comment));
-            $from.val(safeRender(data.fromAddr));
-            $to.val(safeRender(data.toAddr));
-
-            $goodsName.val(safeRender(data.material));
-            $goodsWeight.val(safeRender(data.weight));
-
-            $(".trunkType").each(function(k,v){
-                if($(v).val() == data.trunkType){
-                    $(v).trigger("click");
-                }
-            });
-            $trunkLength.val(safeRender(data.trunkLength));
-            $trunkLoad.val(safeRender(data.trunkLoad));
-
-            $validateTime.val(data.validTimeSec ? data.validTimeSec /(24 * 60 * 60) : "");
-            $time.val(data.billTime ? Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "");
-
-            if(data.userType =="owner"){
-                $("#goodsRadio").trigger("click");
-            }else{
-                $("#trunkRadio").trigger("click");
-            }
 
         });
 
-        $("#refuseMessageContainer").delegate(".giveup","click",function(){
-            var $this = $(this),
-                id = $this.parents().data("id");
+        $(".ownerPaginationWrapper").delegate(".pageLi","click",function(){
+            var index = +$(this).html();
+            $(".ownerPaginationWrapper").data("current",index);
+            renderOwner(addedGoodesMessageData,index);
+        });
 
-            var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9289/message/giveup",
-                data: {
-                    "id": id,
-                },
-                type: "POST",
-                dataType: "json",
-                success: function(data) {
-                    dataProtocolHandler(data,function(data){
-                        debugger; 
-                        $this.parents().filter("tr").hide("fast", function() {
-                            $(this).remove();
-                        });
-                    });
-                },
-
-                error: function(data) {
-                    errLog && errLog("message/giveup error");
-                }
-            });
-            return false;
+        $(".driverPaginationWrapper").delegate(".pageLi","click",function(){
+            var index = +$(this).html();
+            $(".driverPaginationWrapper").data("current",index);
+            renderDriver(addedTrunkMessageData,index);
         });
 
         window.onscroll = function () { 
@@ -898,6 +1029,4 @@ $('.typeahead').typeahead({
 
     bindEvent();
     init();
-    getToAddMessage();
-    getRefuseMessage();
 });

@@ -15,14 +15,18 @@ $(function() {
 			url: "/api/admin/register",
 			data: {
 				username: username,
-				password: psw
+				password: psw,
+				realname : $("#realname").val(),
+				bankName : $("#bankName").val(),
+				bankNum :$("#bankNum").val(),
+				phoneNum : $("#phoneNum").val()
 			},
 			type: "POST",
 			dataType: "json",
 			success: function(data) {
 				dataProtocolHandler(data,function(){
 					showTips("注册成功");
-					location.href = "main.html";
+					location.href = "/";
 				},function(code,msg,data,dataType){
 					if(code == -7){
 						showTips("账号密码输入有误");

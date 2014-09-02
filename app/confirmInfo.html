@@ -2,7 +2,7 @@
 <html class="no-js">
 
 <head>
-    <title>审核驾驶证</title>
+    <title>审核信息</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -20,9 +20,14 @@
     <link rel="stylesheet" href="styles/base.css">
     <!-- endbuild -->
 
-    <!-- build:css(.tmp) styles/verifyDriverLicense.css -->
-    <link rel="stylesheet" href="styles/verifyDriverLicense.css">
+    <!-- build:css(.tmp) styles/typeahead.js-bootstrap.css -->
+    <link rel="stylesheet" href="styles/typeahead.js-bootstrap.css">
     <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/confirmInfo.css -->
+    <link rel="stylesheet" href="styles/confirmInfo.css">
+    <!-- endbuild -->
+
 
     <!-- build:js scripts/vendor/modernizr.js -->
     <script src="bower_components/modernizr/modernizr.js"></script>
@@ -40,11 +45,9 @@
     <script type="text/javascript" src="bower_components/bootstrap-ie/js/bootstrap-ie.js"></script>
 <![endif]-->
     <!-- endbuild -->
-
 </head>
 
 <body>
-
 
     <nav class="navbar navbar-inverse" role="navigation">
         <div class="container">
@@ -96,27 +99,46 @@
         </div>
     </nav>
 
-    <div class="main">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">待审核驾驶证</h3>
-            </div>
-            <table class="table" id="driverLicenseTable">
-                <thead>
-                    <tr>
-
-                        <th>id</th>
-                        <th>电话号码</th>
-                        <th>昵称</th>
-                        <th>驾驶证</th>
-                        <th>照片</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+    <div class="panel panel-default ">
+        <div class="panel-heading">
+            <h3 class="panel-title">待审核信息
+            </h3>
         </div>
+        <div class="btn-group confirmInfo-usertype-mode-wrapper">
+            <button type="button" class="confirmInfo-usertype-mode btn btn-default" data-usertype="driver">车源求货</button>
+            <button type="button" class="confirmInfo-usertype-mode btn btn-default" data-usertype="owner">货源求车</button>
+            <button type="button" class="confirmInfo-usertype-mode btn btn-primary" data-usertype="all">不限</button>
+        </div>
+
+        <span class="confirmInfo-period-wrapper">
+              从<input type="date" placeholder="起始日期" id="confirmInfo-date-from"></input> 
+              到<input type="date" placeholder="结束日期" id="confirmInfo-date-to"></input>
+
+              筛选<input type="text" placeholder="广州" id="confirmInfo-input-search"></input>
+              每页显示<input type="text" placeholder="默认50" id="confirmInfo-input-perpage" value="50"></input>个
+              <a herf="javascript:void(0);" class="btn btn-primary" id="confirmInfo-confirm">确定</a>
+          </span>
+        <div class="confirmInfoPaginationWrapper">
+        </div>
+        <table class="table" id="confirmInfoTable">
+            <thead>
+                <tr>
+                    <th>编辑者</th>
+                    <th>提交时间</th>
+                    <th>消息类型</th>
+                    <th>称呼</th>
+                    <th>电话号码</th>
+                    <th>出发地</th>
+                    <th>目的地</th>
+                    <th>详细信息</th>
+                    <th>备注</th>
+                    <th>原始信息</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
@@ -142,7 +164,6 @@
     <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
     <!-- endbuild -->
 
-
     <!-- build:js scripts/plugins_bootstrap.js -->
     <script src="bower_components/sass-bootstrap/js/affix.js"></script>
     <script src="bower_components/sass-bootstrap/js/alert.js"></script>
@@ -158,11 +179,12 @@
     <script src="bower_components/sass-bootstrap/js/tab.js"></script>
     <!-- endbuild -->
 
-
-    <!-- build:js({.tmp,app}) scripts/verifyDriverLicense.js -->
+    <!-- build:js({.tmp,app}) scripts/confirmInfo.js -->
+    <script src="scripts/typehead.js"></script>
+    <script src="scripts/region.js"></script>
     <script src="scripts/utils.js"></script>
     <script src="scripts/login_handler.js"></script>
-    <script src="scripts/verifyDriverLicense.js"></script>
+    <script src="scripts/confirmInfo.js"></script>
     <!-- endbuild -->
 </body>
 

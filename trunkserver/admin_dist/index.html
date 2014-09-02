@@ -50,18 +50,23 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
                 <ul class="nav navbar-nav">
-                    <li><a id="navVerifyIDNum" class="navOperate" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 审核身份证</a>
+                    <li><a id="navVerifyIDNum" class="navOperate verifyPermission" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 身份证</a>
                     </li>
-                    <li><a id="navVerifyDriverLicense" class="navOperate" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核驾驶证</a>
+                    <li><a id="navVerifyDriverLicense" class="navOperate verifyPermission" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
                     </li>
-                    <li><a id="navVerifyTrunkLicense" class="navOperate" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核行驶证</a>
+                    <li><a id="navVerifyTrunkLicense" class="navOperate verifyPermission" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
                     </li>
-                    <li><a id="navFeedback" class="navOperate" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
+                    <li><a id="navFeedback" class="navOperate feedbackPermission" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
                     </li>
-                    <li><a id="navAddInfo" class="navOperate" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源信息</a>
+                    <li><a id="navAddInfo" class="navOperate addInfoPermission" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> web发单统计</a>
+                    <li><a id="navSeeInfo" class="navOperate confirmInfoPermission" href="confirmInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核信息</a>
                     </li>
+                    <li><a id="navSeeInfo" class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
+                    </li>
+                    <li><a id="navSeeInfo" class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    </li>
+
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
@@ -79,56 +84,19 @@
         </div>
     </nav>
 
-    <div class="banner">
-        <ul>
-            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/sunset.jpg)">
-                <div class="inner">
-                    <h1>中国最好用的货车软件</h1>
-                    <p>web版、安卓、ios三平台发布</p>
-
-                    <a class="btn" href="#download">下载</a>
-                </div>
-            </li>
-
-            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/wood.jpg)">
-                <div class="inner">
-                    <h1>高效</h1>
-                    <p>精准定位，安全支付，物流无忧</p>
-
-                    <a class="btn" href="#download">下载</a>
-                </div>
-            </li>
-
-            <li style="background-image: url(http://www.bootcss.com/p/unslider/img/subway.jpg)">
-                <div class="inner">
-                    <h1>我们都在用</h1>
-                    <p>你，还在等什么</p>
-
-                    <a class="btn" href="//github.com/idiot/unslider">参与</a>
-                </div>
-            </li>
-        </ul>
-    </div>
+    <h1>请注意，必须使用谷歌浏览器使用本系统，下载地址：<a href="http://rj.baidu.com/soft/detail/14744.html?ald">http://rj.baidu.com/soft/detail/14744.html?ald</a>
 
 
-
-    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-    <script>
-        (function(b, o, i, l, e, r) {
-            b.GoogleAnalyticsObject = l;
-            b[l] || (b[l] =
-                function() {
-                    (b[l].q = b[l].q || []).push(arguments)
-                });
-            b[l].l = +new Date;
-            e = o.createElement(i);
-            r = o.getElementsByTagName(i)[0];
-            e.src = '//www.google-analytics.com/analytics.js';
-            r.parentNode.insertBefore(e, r)
-        }(window, document, 'script', 'ga'));
-        ga('create', 'UA-XXXXX-X');
-        ga('send', 'pageview');
-    </script>
+    
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
 
     <script src="scripts/jquery.js"></script>
 
@@ -137,6 +105,5 @@
     <script src="scripts/plugins_bootstrap.js"></script>
 
     <script src="scripts/index.js"></script>
-</body>
-
+</h1></body>
 </html>

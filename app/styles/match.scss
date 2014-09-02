@@ -1,0 +1,21 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
+.goods-item{
+    border: solid 1px red;
+    padding: 10px;
+}
+
+.trunk-item{
+    border: solid 1px blue;
+    padding: 10px;
+}
+
+.sub-text{
+    color: #999;
+}
+
+.data-list{
+    width: 100%;
+}

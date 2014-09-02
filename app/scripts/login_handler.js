@@ -1,6 +1,13 @@
 //header登录态展示处理
 //依赖$.cookie
 
+var G_data = G_data || {};
+G_data.admin = G_data.admin || {};
+if(localStorage){
+	G_data.admin = JSON.parse(localStorage.getItem("admin"))|| {};
+}
+
+
 
 (loginHandler = function () {
 	var $navLogin = $("#navLogin"),
@@ -14,10 +21,12 @@
 	if ($.cookie("mark") && $.cookie("username")){
 		$navLogin.hide();
 		$navRegister.hide();
-		$navNickname.hide();
+		$navNickname.show();
 		$navLogout.show();
-		$navOperate.show();
-		// $navNickname.html($.cookie("username"));
+		if(G_data.admin && G_data.admin.username){
+			$navNickname.html(G_data.admin.username);
+		}
+		
 	}else{
 		$navLogin.show();
 		$navRegister.show();
@@ -25,8 +34,19 @@
 		$navLogout.hide();
 		$navOperate.hide();
 
-		// $navNickname.html("");
+		$navNickname.html("");
 	}
+	debugger;
+	$.each(G_data.admin,function(k,v){
+		if(k.indexOf("Permission")>=0){
+			if(v){
+				$("."+k).show();
+			}else{
+				$("."+k).hide();
+			}
+		}
+	});
+
 
 
 	$navLogout.click(function(){

@@ -22,7 +22,10 @@ $(function() {
 			dataType: "json",
 			success: function(data) {
 				debugger;
-				dataProtocolHandler(data,function(){
+				dataProtocolHandler(data,function(data){
+					localStorage.setItem("admin", JSON.stringify(data));
+					G_data = G_data || {};
+					G_data.admin = data;
 					location.href = "/";
 				},function(code,msg,data,dataType){
 					if(code == -7){

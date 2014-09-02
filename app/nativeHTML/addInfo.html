@@ -34,7 +34,7 @@
         <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">添加货源、车源信息
-            <button id="my_panel_fixed" class="pull-right">固定</button>
+            <button id="my_panel_fixed" class="pull-right">滚动</button>
           </h3>
 
           </div>
@@ -185,6 +185,9 @@
                   "></textarea>
                 </div>
               </div>
+              <input type="text" class="form-control hide" id="qqgroup">
+              <input type="text" class="form-control hide" id="qqgroupid">
+              <input type="text" class="form-control hide" id="rawText">
               <div class="form-group">
                 <label for="op" class="col-sm-4 control-label">操作:</label>
                 <div class="col-sm-8">
@@ -204,7 +207,7 @@
 
               <button id="small_2" class="pull-right">收起</button>
               <button class="pull-right fullscreen">全屏</button>
-              <button id="getToAddMessage" class="pull-right">拉取20条</button>
+              <button id="getToAddMessage" class="pull-right">拉取10条</button>
             </h3>
           </div>
           <table class="table" id="toAddMessageContainer" >
@@ -225,74 +228,33 @@
         </table>
          
         </div>
-
-        <div class="panel panel-default ">
+      <div class="panel panel-default ">
           <div class="panel-heading">
-            <h3 class="panel-title">已发消息
-              
-              <button id="small" class="pull-right">收起</button>
-              <button class="pull-right fullscreen">全屏</button>
-
+            <h3 class="panel-title">驳回信息
             </h3>
-
           </div>
-          <!-- Nav tabs -->
-        <ul class="nav nav-tabs" role="tablist">
-          <li class="active"><a href="#home" role="tab" data-toggle="tab">货源</a></li>
-          <li><a href="#profile" role="tab" data-toggle="tab">车源</a></li>
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content" id="addedMessageContainer">
-          <div class="tab-pane active" id="home">
-            <div class="ownerPaginationWrapper">
-            </div>
-            <table class="table" >
-          <thead>
-            <tr>
-              <th>称呼</th>
-              <th>电话号码</th>
-              <th>货物名称</th>
-              <th>重量</th>
-              <th>目标价格</th>
-              <th>出发地</th>
-              <th>目的地</th>
-              <th>发货时间</th>
-              <th>有效期</th>
-              <th>备注</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="goodsList">
-          </tbody>
+          <table class="table" id="refuseMessageContainer">
+            <thead>
+              <tr>
+                <th>提交时间</th>
+                <th>消息类型</th>
+                <th>称呼</th>
+                <th>电话号码</th>
+                <th>出发地</th>
+                <th>目的地</th>
+                <th>详细信息</th>
+                <th>备注</th>
+                <th>驳回原因</th>
+                <th>原始信息</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
         </table>
-          </div>
-          <div class="tab-pane" id="profile">
-            <div class="driverPaginationWrapper">
-            </div>
-            <table class="table">
-          <thead>
-            <tr>
-              <th>称呼</th>
-              <th>电话号码</th>
-              <th>车辆类型</th>
-              <th>车长</th>
-              <th>载重</th>
-              <th>车牌</th>
-              <th>出发地</th>
-              <th>目的地</th>
-              <th>回程时间</th>
-              <th>有效期</th>
-              <th>备注</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody  id="trunkList">
-          </tbody>
-        </table>
-          </div>
+         
         </div>
-          </div>
+
         </div>
     </div>
     

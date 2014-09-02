@@ -31,6 +31,13 @@ function dataProtocolHandler(data,successCallback,failCallback){
 //header登录态展示处理
 //依赖$.cookie
 
+var G_data = G_data || {};
+G_data.admin = G_data.admin || {};
+if(localStorage){
+	G_data.admin = JSON.parse(localStorage.getItem("admin"))|| {};
+}
+
+
 
 (loginHandler = function () {
 	var $navLogin = $("#navLogin"),
@@ -44,10 +51,12 @@ function dataProtocolHandler(data,successCallback,failCallback){
 	if ($.cookie("mark") && $.cookie("username")){
 		$navLogin.hide();
 		$navRegister.hide();
-		$navNickname.hide();
+		$navNickname.show();
 		$navLogout.show();
-		$navOperate.show();
-		// $navNickname.html($.cookie("username"));
+		if(G_data.admin && G_data.admin.username){
+			$navNickname.html(G_data.admin.username);
+		}
+		
 	}else{
 		$navLogin.show();
 		$navRegister.show();
@@ -55,8 +64,19 @@ function dataProtocolHandler(data,successCallback,failCallback){
 		$navLogout.hide();
 		$navOperate.hide();
 
-		// $navNickname.html("");
+		$navNickname.html("");
 	}
+	debugger;
+	$.each(G_data.admin,function(k,v){
+		if(k.indexOf("Permission")>=0){
+			if(v){
+				$("."+k).show();
+			}else{
+				$("."+k).hide();
+			}
+		}
+	});
+
 
 
 	$navLogout.click(function(){
@@ -107,14 +127,18 @@ $(function() {
 			url: "/api/admin/register",
 			data: {
 				username: username,
-				password: psw
+				password: psw,
+				realname : $("#realname").val(),
+				bankName : $("#bankName").val(),
+				bankNum :$("#bankNum").val(),
+				phoneNum : $("#phoneNum").val()
 			},
 			type: "POST",
 			dataType: "json",
 			success: function(data) {
 				dataProtocolHandler(data,function(){
 					showTips("注册成功");
-					location.href = "main.html";
+					location.href = "/";
 				},function(code,msg,data,dataType){
 					if(code == -7){
 						showTips("账号密码输入有误");

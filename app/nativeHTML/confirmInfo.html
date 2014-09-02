@@ -1,0 +1,105 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>审核信息</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/typeahead.js-bootstrap.css -->
+    <link rel="stylesheet" href="styles/typeahead.js-bootstrap.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/confirmInfo.css -->
+    <link rel="stylesheet" href="styles/confirmInfo.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+
+    <div class="panel panel-default ">
+          <div class="panel-heading">
+            <h3 class="panel-title">待审核信息
+            </h3>
+          </div>
+        <div class="btn-group confirmInfo-usertype-mode-wrapper">
+                  <button type="button" class="confirmInfo-usertype-mode btn btn-default" data-usertype="driver">车源求货</button>
+                  <button type="button" class="confirmInfo-usertype-mode btn btn-default" data-usertype="owner">货源求车</button>
+                  <button type="button" class="confirmInfo-usertype-mode btn btn-primary" data-usertype="all">不限</button>
+                </div>
+
+          <span class="confirmInfo-period-wrapper">
+              从<input type="date" placeholder="起始日期" id="confirmInfo-date-from"></input> 
+              到<input type="date" placeholder="结束日期" id="confirmInfo-date-to"></input>
+
+              筛选<input type="text" placeholder="广州" id="confirmInfo-input-search"></input>
+              每页显示<input type="text" placeholder="默认50" id="confirmInfo-input-perpage" value="50"></input>个
+              <a herf="javascript:void(0);" class="btn btn-primary" id="confirmInfo-confirm">确定</a>
+          </span>
+         <div class="confirmInfoPaginationWrapper">
+         </div>
+        <table class="table" id="confirmInfoTable">
+            <thead>
+              <tr>
+                <th>编辑者</th>
+                <th>提交时间</th>
+                <th>消息类型</th>
+                <th>称呼</th>
+                <th>电话号码</th>
+                <th>出发地</th>
+                <th>目的地</th>
+                <th>详细信息</th>
+                <th>备注</th>
+                <th>原始信息</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+      </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/confirmInfo.js -->
+    <script src="scripts/typehead.js"></script>
+    <script src="scripts/region.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/confirmInfo.js"></script>
+    <!-- endbuild -->
+</body>
+</html>
