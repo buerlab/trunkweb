@@ -75,9 +75,9 @@ var safeRender =function(key){
 var renderInfo = function(data){
     var ret = "";
     if (data.userType == "driver"){
-        ret += "车长:" + safeRender(data.trunkLength) + "米;";
-        ret += "载重:" + safeRender(data.trunkLoad) + "吨;";
-        ret += "车辆类型:" + safeRender(data.trunkType) + ";";
+        ret += "<p>车长:" + safeRender(data.trunkLength) + "米</p>";
+        ret += "<p>载重:" + safeRender(data.trunkLoad) + "吨</p>";
+        ret += "<p>车辆类型:" + safeRender(data.trunkType) + "</p>";
     }
 
     return ret;
@@ -96,7 +96,7 @@ var renderRoute = function(data){
 }
     var render = function(data){
         var renderItem = function(data){
-            var template = '<tr id="tr_'+ '">\
+            var template = '<tr id="tr_'+ data.id +  '">\
               <td>'+ data.editor +'</td>\
               <td>'+ (data.time ?  Datepattern(new Date(data.time),"yyyy-MM-dd HH:mm:ss") : "") +'</td>\
               <td>'+ renderUserType(data.userType) +'</td>\
@@ -106,8 +106,9 @@ var renderRoute = function(data){
               <td>'+ data.qqgroup + ":" + data.qqgroupid +'</td>\
               <td>'+ renderInfo(data) +'</td>\
               <td>'+ renderRoute(data) +'</td>\
+              <td>'+ data.comment +'</td>\
               <td>\
-                <div class="btn-group btn-group-lg" data-id= "' +'"">\
+                <div class="btn-group" data-id= "'+ data.id +'">\
                   <button type="button" class="btn btn-success edit">修改</button>\
                   <button type="button" class="btn btn-danger delete">删除</button>\
                 </div>\
@@ -123,4 +124,31 @@ var renderRoute = function(data){
     }
 
     getData();
+
+    $("#table").delegate(".delete", "click",function(){
+        var id = $(this).parent().data("id");
+
+        var jqxhr = $.ajax({
+            url: "http://115.29.8.74:9288/api/regular/remove",
+            data: {
+                "id":id
+            },
+            
+            type: "POST",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    $("#tr_" + id).hide("fast",function(){
+                        $(this).remove();   
+                    });
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("删除常规路线失败");
+            }
+        });
+    });
+
 });

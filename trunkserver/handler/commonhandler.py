@@ -133,8 +133,9 @@ class RemoveRegularHandler(BaseHandler):
     # @auth
     @coroutineDebug
     @coroutine
-    @addAllowOriginHeader
+    # @addAllowOriginHeader
     def onCall(self, **kwargs):
+        self.add_header("Access-Control-Allow-Origin","*")
         result = yield Regular.objects({"id":kwargs["id"]}).remove()
         if result:
             self.finish(DataProtocol.getSuccessJson())

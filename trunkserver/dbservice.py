@@ -1136,44 +1136,47 @@ class DbService(object):
 
 #state : wait ignore done
     def getToAddMessage(self,keyword,user):
-        condition = {}
+        try:
+            condition = {}
 
-        if not keyword is None:
-            query = re.compile(keyword)
-            condition["$or"] = [
-                {"phonenum":query},
-                {"nickname":query},
-                {"content":query},
-                {"groupname":query},
-                {"groupid":query}
-            ]
-        ret = []
+            if not keyword is None:
+                query = re.compile(keyword)
+                condition["$or"] = [
+                    {"phonenum":query},
+                    {"nickname":query},
+                    {"content":query},
+                    {"groupname":query},
+                    {"groupid":query}
+                ]
+            ret = []
 
-        # 清除环境
-        for item in self.mongo.trunkDb.editingMessageCol.find({"editor":user}):
-            print "editingMessageCol item", item
-            toAddItem = self.mongo.trunkDb.toAddMessageCol.find_one({"_id":ObjectId(item["_id"])})
-            toAddItem["state"] = "wait"
-            toAddItem["editor"] = None
+            # 清除环境
+            for item in self.mongo.trunkDb.editingMessageCol.find({"editor":user}):
+                print "editingMessageCol item", item
+                toAddItem = self.mongo.trunkDb.toAddMessageCol.find_one({"_id":ObjectId(item["_id"])})
+                toAddItem["state"] = "wait"
+                toAddItem["editor"] = None
 
-            print "toAddItem",toAddItem
+                print "toAddItem",toAddItem
 
-            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},toAddItem)
+                self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},toAddItem)
 
-        self.mongo.trunkDb.editingMessageCol.remove({"editor":user})
+            self.mongo.trunkDb.editingMessageCol.remove({"editor":user})
 
-        for item in self.mongo.trunkDb.toAddMessageCol.find({"state":"wait"}).sort([("time",-1)]).limit(10):
+            for item in self.mongo.trunkDb.toAddMessageCol.find({"state":"wait"}).sort([("time",-1)]).limit(10):
 
-            item["state"] = "editing"
-            item["editor"] = user
+                item["state"] = "editing"
+                item["editor"] = user
 
-            print "item groupid",item["groupid"]
-            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},item)
+                print "item groupid",item["groupid"]
+                self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},item)
 
-            self.mongo.trunkDb.editingMessageCol.insert(item)
-            ret.append(item)
+                self.mongo.trunkDb.editingMessageCol.insert(item)
+                ret.append(item)
 
-        return ret
+            return ret
+        except:
+            mylog.getlog().exception(getLogText("getToAddMessage dbservice"))
 
 
     def delToAddMessage(self,id,user):
@@ -1227,7 +1230,7 @@ class DbService(object):
 
         item = self.mongo.trunkDb.toAddMessageCol.find({"content":content,"time":{"$gt":ts}}).limit(1)
         if item and item.count()>0:
-            print "一天内算是重复添加", item
+            # print "一天内算是重复添加", item
             # print '-------item[0]', item[0]
             # print "time.time() - item[0].sendTime",(time.time() - item[0]["time"]/1000)
             # if time.time() - item[0]["time"]/1000 < 24 * 60 * 60:
