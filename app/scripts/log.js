@@ -74,17 +74,16 @@ $(function(){
 
     var getLogList = function(){
         var jqxhr = $.ajax({
-            url: "http://localhost:9289/log/getList",
+            url: "/log/getList",
             data: null,
             type: "GET",
             dataType: "json",
             success: function(data) {
                 dataProtocolHandler(data,function(data){
                     debugger; 
-                    render(data);
+                    render(data.sort());
                 });
             },
-
             error: function(data) {
                 errLog && errLog("getLogList error");
             }
@@ -103,7 +102,7 @@ $(function(){
 
     var getLog = function(filename,keyword,viewmode){
         var jqxhr = $.ajax({
-            url: "http://localhost:9289/log/get",
+            url: "/log/get",
             data: {
                 "filename":filename
             },

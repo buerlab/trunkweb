@@ -2083,7 +2083,7 @@ $(function(){
 
 
     var getData= function(){
-        var url = "http://localhost:9289/message/getVerifying";
+        var url = "/message/getVerifying";
         
         var data = getParam();
 
@@ -2120,7 +2120,7 @@ $(function(){
 
 
     function confirmBill(_param){
-        var url = "http://localhost:9289/message/confirm";
+        var url = "/message/confirm";
                    
         var param = {
             id :_param._id.$oid
@@ -2173,7 +2173,7 @@ $(function(){
     }
 
     function refuseBill(_param){
-        var url = "http://localhost:9289/message/refuse";
+        var url = "/message/refuse";
                 
         if(_param.id == null || _param.id == ""){
             showTips("id错误");

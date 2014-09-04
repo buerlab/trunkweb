@@ -139,7 +139,7 @@ $(function(){
 
 
     var getData= function(){
-        var url = "http://localhost:9289/stat/added";
+        var url = "/stat/added";
         
         var data = getParam();
 

@@ -192,7 +192,7 @@ $(function(){
     }
 
     var getEditorData= function(){
-        var url = "http://localhost:9289/stat/workload";
+        var url = "/stat/workload";
         
         var data = getEditorParam();
 

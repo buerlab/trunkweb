@@ -313,7 +313,7 @@ $(function(){
     }
 
     var getSummaryData= function(){
-        var url = "http://localhost:9289/stat/summary";
+        var url = "/stat/summary";
         
         var data = getSummaryParam();
 
@@ -681,7 +681,7 @@ $(function(){
     }
 
     var getEditorData= function(){
-        var url = "http://localhost:9289/stat/workload";
+        var url = "/stat/workload";
         
         var data = getEditorParam();
 
@@ -871,7 +871,7 @@ $(function(){
 
 
     var getGroupData= function(){
-        var url = "http://localhost:9289/stat/summary";
+        var url = "/stat/summary";
         
         var data = getEditorParam();
 
@@ -1081,7 +1081,7 @@ $(function(){
     }
 
     var getRegionData= function(){
-        var url = "http://localhost:9289/stat/summary";
+        var url = "/stat/summary";
         
         var data = getRegionParam();
 
@@ -1232,7 +1232,7 @@ $(function(){
 
 
     var getRouteData= function(){
-        var url = "http://localhost:9289/stat/summary";
+        var url = "/stat/summary";
         
         var data = getParam();
 
@@ -1405,7 +1405,7 @@ $(function(){
 
 
     var getToAddData= function(){
-        var url = "http://localhost:9289/stat/toadd";
+        var url = "/stat/toadd";
         
         var data = getParam();
 
@@ -1582,7 +1582,7 @@ $(function(){
 
 
     var getData= function(){
-        var url = "http://localhost:9289/stat/added";
+        var url = "/stat/added";
         
         var data = getParam();
 

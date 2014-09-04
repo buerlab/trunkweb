@@ -131,7 +131,7 @@ $(function(){
 
 
     var getToAddData= function(){
-        var url = "http://localhost:9289/stat/toadd";
+        var url = "/stat/toadd";
         
         var data = getParam();
 

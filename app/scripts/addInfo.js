@@ -341,7 +341,7 @@ var Datepattern=function(d,fmt) {
     // } 
 
     function sendBill(){
-        var url = "http://localhost:9289/message/send";
+        var url = "/message/send";
                    
         var param = getReqParams();
         if(param==null){
@@ -375,7 +375,7 @@ var Datepattern=function(d,fmt) {
         });
 
         if(modifyingId){
-            var urlModify = "http://localhost:9289/message/modify";
+            var urlModify = "/message/modify";
 
             var jqxhr = $.ajax({
                 url: urlModify,
@@ -407,7 +407,7 @@ var Datepattern=function(d,fmt) {
     }
 
     function getToAddMessage(type){
-        var url = "http://localhost:9289/message/get";
+        var url = "/message/get";
         
 
         var jqxhr = $.ajax({
@@ -542,7 +542,7 @@ var Datepattern=function(d,fmt) {
     }
 
     var getRefuseMessage= function(){
-        var url = "http://localhost:9289/message/getRefuse";
+        var url = "/message/getRefuse";
 
         var jqxhr = $.ajax({
             url: url,
@@ -705,7 +705,7 @@ var Datepattern=function(d,fmt) {
             var $this = $(this),
                 id = $this.parents().data("id");
             var jqxhr = $.ajax({
-                url: "http://localhost:9289/message/delete",
+                url: "/message/delete",
                 data: {
                     "id": id,
                 },
@@ -735,7 +735,7 @@ var Datepattern=function(d,fmt) {
                 id = $this.parents().data("id");
 
             var jqxhr = $.ajax({
-                url: "http://localhost:9289/message/done",
+                url: "/message/done",
                 data: {
                     "id": id,
                 },
@@ -868,7 +868,7 @@ var Datepattern=function(d,fmt) {
                 id = $this.parents().data("id");
 
             var jqxhr = $.ajax({
-                url: "http://localhost:9289/message/giveup",
+                url: "/message/giveup",
                 data: {
                     "id": id,
                 },

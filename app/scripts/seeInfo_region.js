@@ -173,7 +173,7 @@ $(function(){
     }
 
     var getRegionData= function(){
-        var url = "http://localhost:9289/stat/summary";
+        var url = "/stat/summary";
         
         var data = getRegionParam();
 
