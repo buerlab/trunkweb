@@ -5,22 +5,48 @@
 
 import json
 from bson import json_util
+
 class DataProtocol(object):
+
     SUCCESS = 0
     ARGUMENT_ERROR = -1 #参数错误
     DB_ERROR = -2      #数据库访问错误
     DB_DUPLICATE_ERROR = -3 # 数据重复
+    
+    IS_NOT_AJAX_REQUEST = -4 #非 ajax请求却请求了ajax/xxx的文件
     DATAPROTOCOL_ERROR = -5  # -5 ：数据封装问题
-    IS_NOT_AJAX_REQUEST = -6 #非 ajax请求却请求了ajax/xxx的文件
     FILE_ERROR = -6 #文件读取失败
     AUTH_ERROR = -7
     USER_EXISTED_ERROR = -8 #用户已经存在，注册失败
     LOGIN_FAIL = -9
+    SERVER_ERROR = -10
+
+    PERMISSION_DENY = -11 #没有权限
+    
     AT_LEAST_ONE_TRUNK_ERROR = -20001 #只要要保存一辆货车
+    BILL_REMOVED = -30001  #bill已经被删除
+    BILL_NOT_OWN = -30002   #用户不用有该bill
+    BILL_NOT_WAIT = -30003   #bill不再有效期
+    USER_INVALID = -30004  #请求中用户不存在或者不是有效的对象(管理员)
+
+    ALREADY_COMMENTED = -40001 #已经评论过了
+    CANNOT_SELF_COMMENT = -40002 #不能给自己评论呢
+    MESSAGE_DUPLICATE_ERROR = -50001 #重复添加message
     # code: 0 代表成功 ，负数代表失败，-1 ~ -100 通用失败， -1000 ~ -9999 自定义错误代码
+
    
     # datatype include "html","json","string","nothing"
     #"nothing " is default
+
+    #MSG
+    COMMON_MSG = "服务器繁忙，请稍后再试"
+    ARGUMENT_ERROR_MSG ="请求失败，请重试"
+    DB_ERROR = "服务器繁忙，请稍后再试"
+    IS_NOT_AJAX_REQUEST_MSG="非法请求，请用正常方式请求"
+    AT_LEAST_ONE_TRUNK_ERROR_MSG = "至少要保存一辆货车"
+    ALREADY_COMMENTED_MSG = "已经评论过了"
+    CANNOT_SELF_COMMENT_MSG = "不能给自己评论"
+    BILL_REMOVED_MSG = "订单已经被删除"
 
     #什么都不判断直接输出return，不保证数据正确，只能被getJson()调用
     @staticmethod
@@ -39,7 +65,7 @@ class DataProtocol(object):
         return DataProtocol._wrapJson(DataProtocol.DATAPROTOCOL_ERROR, msg,"","nothing")
 
     @staticmethod
-    def getJson(code, msg="have no message.", data=None, datatype="nothing"):
+    def getJson(code, msg="", data=None, datatype="nothing"):
         retJson = None
         if not isinstance(code,int):
             try:
@@ -72,6 +98,23 @@ class DataProtocol(object):
                 else:
                     retJson = DataProtocol._wrapError("unknown datatype")
 
+        if msg == "":
+            if code == DataProtocol.ARGUMENT_ERROR:
+                msg = DataProtocol.ARGUMENT_ERROR_MSG
+            elif code ==DataProtocol.DB_ERROR:
+                msg = DataProtocol.DB_ERROR_MSG
+            elif code ==DataProtocol.IS_NOT_AJAX_REQUEST:
+                msg = DataProtocol.IS_NOT_AJAX_REQUEST_MSG
+            elif code ==DataProtocol.AT_LEAST_ONE_TRUNK_ERROR:
+                msg = DataProtocol.AT_LEAST_ONE_TRUNK_ERROR_MSG
+            elif code ==DataProtocol.ALREADY_COMMENTED:
+                msg = DataProtocol.ALREADY_COMMENTED_MSG
+            elif code ==DataProtocol.CANNOT_SELF_COMMENT:
+                msg = DataProtocol.CANNOT_SELF_COMMENT_MSG
+            else:
+                msg = DataProtocol.COMMON_MSG
+
+        # print "----------getJson",code,msg,data,datatype
         if not retJson is None:
             return retJson
         else:       

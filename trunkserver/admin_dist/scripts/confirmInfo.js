@@ -1799,6 +1799,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -1810,14 +1813,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},
@@ -2054,7 +2053,6 @@ $(function(){
                 <td>'+ data.toAddr +'</td>\
                 <td>'+ renderInfo(data) +'</td>\
                 <td>'+ (data.comment? data.comment:"无") +'</td>\
-                <td>'+ (data.rawText? data.rawText:"无") +'</td>\
                 <td>\
                     <div class="btn-group" data-data=\'' + dataStr + '\' data-id= "'+ data._id.$oid+'"">\
                       <button type="button" class="btn btn-primary success">通过</button>\
@@ -2066,11 +2064,14 @@ $(function(){
                               <li><a  class= "refuse-resson" href="javascript:void(0);">备注太长了，精简一点</a></li>\
                               <li><a  class= "refuse-resson" href="javascript:void(0);">备注的格式不太好，注意标点符号</a></li>\
                               <li><a  class= "refuse-resson" href="javascript:void(0);">备注不能显示任何手机号码，请删掉</a></li>\
+                              <li><a  class= "refuse-resson" href="javascript:void(0);">备注显示无关内容，请删掉</a></li>\
                               <li><a  class= "refuse-resson" href="javascript:void(0);">地址格式不对</a></li>\
+                              <li><a  class= "refuse-resson" href="javascript:void(0);">地址不对</a></li>\
                               <li><a  class= "refuse-resson" href="javascript:void(0);">其他错误，请联系管理员</a></li>\
                             </ul>\
                     </div>\
                 </td>\
+                <td>'+ (data.rawText? data.rawText:"无") +'</td>\
                 </tr>';
                 return template;
             } 
@@ -2082,7 +2083,7 @@ $(function(){
 
 
     var getData= function(){
-        var url = "http://115.29.8.74:9289/message/getVerifying";
+        var url = "http://localhost:9289/message/getVerifying";
         
         var data = getParam();
 
@@ -2119,7 +2120,7 @@ $(function(){
 
 
     function confirmBill(_param){
-        var url = "http://115.29.8.74:9289/message/confirm";
+        var url = "http://localhost:9289/message/confirm";
                    
         var param = {
             id :_param._id.$oid
@@ -2172,7 +2173,7 @@ $(function(){
     }
 
     function refuseBill(_param){
-        var url = "http://115.29.8.74:9289/message/refuse";
+        var url = "http://localhost:9289/message/refuse";
                 
         if(_param.id == null || _param.id == ""){
             showTips("id错误");

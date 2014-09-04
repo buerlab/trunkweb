@@ -77,6 +77,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -88,14 +91,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},

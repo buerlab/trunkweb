@@ -4,6 +4,7 @@ from functools import wraps
 import tornado
 from models.backends.motorBackend import *
 from motor import Op
+from utils import *
 
 __author__ = 'zhongqiling'
 
@@ -84,13 +85,30 @@ def testRemoveBill():
         print "remove ok"
 
 
+def testAddrComp():
+    print addr_compare("北京-昌平", "北京-昌平")
+    print addr_compare("a-b", "c-d-e")
+    print addr_compare("a-c", "a-d")
+    print addr_compare("a-b-c", "a-b-c")
+    print addr_compare("a-b-o", "a-b-c")
+
+
+def testAddrAnalysis():
+    addrs = ["a-b-c", "a-o-f","m-f-e","m-p","m-o","r-t-y", "a-b-p"]
+    print addrsAnalysis(addrs)
+
+
+
+
+
 @coroutine
 def testCall():
-    yield testSendBill()
-
+    # yield testSendBill()
+    testAddrAnalysis()
 
 if __name__ == "__main__":
-    connect("mongodb://localhost:27017")
-
-    tornado.ioloop.IOLoop.instance().add_callback(testCall)
-    tornado.ioloop.IOLoop.instance().start()
+    testAddrAnalysis()
+    # connect("mongodb://localhost:27017")
+    #
+    # tornado.ioloop.IOLoop.instance().add_callback(testCall)
+    # tornado.ioloop.IOLoop.instance().start()

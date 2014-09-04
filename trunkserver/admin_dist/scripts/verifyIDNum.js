@@ -77,6 +77,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -88,14 +91,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},
@@ -123,17 +122,11 @@ $(function() {
                     debugger; 
                     render(data);
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    if(code == -7){
-                        showTips("账号密码输入有误");
-                    }else{
-                        showTips("未知错误");
-                    }
                 });
             },
 
             error: function(data) {
-                errLog && errLog("loginAjax");
+                errLog && errLog("获取身份证审核列表失败");
             }
         });
     }
@@ -183,17 +176,11 @@ $(function() {
                         $(this).remove();
                     });
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    if(code == -7){
-                        showTips("账号密码输入有误");
-                    }else{
-                        showTips("未知错误");
-                    }
                 });
             },
 
             error: function(data) {
-                errLog && errLog("pass verify fail");
+                errLog && errLog("通过失败");
             }
         });
         return false;
@@ -218,17 +205,11 @@ $(function() {
                         $(this).remove();
                     });
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    if(code == -7){
-                        showTips("账号密码输入有误");
-                    }else{
-                        showTips("未知错误");
-                    }
                 });
             },
 
             error: function(data) {
-                errLog && errLog("pass verify fail");
+                errLog && errLog("驳回失败");
             }
         });
         return false;

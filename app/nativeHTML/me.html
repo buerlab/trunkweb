@@ -1,0 +1,179 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>我的资料</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/me.css -->
+    <link rel="stylesheet" href="styles/me.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    <div class="main">
+        <div class="col-sm-2 my-panel">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">菜单
+              </h3>
+            </div>
+            <div class="list-group">
+              <a href="javascript:void(0);" class="menu-item list-group-item active" data-id="profile">我的资料</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="editorStat">录入工作量统计</a>
+            </div>
+          </div>
+        </div>
+      <div class="col-sm-10 main-container-wrapper">
+            <div class="main-container clearfix" id="profile">
+              <h2>我的资料</h2>
+              <h4>如果忘记密码或者要修改密码，请联系管理员18575594301 或者 15507507400</h4>
+              <h4>姓名，手机号码，银行卡信息务必填写正确，如果填写错误，收不到费用，责任自己承担。</h4>
+              <form class="form-horizontal col-sm-6" role="form" data-parsley-validate id="profileForm">
+              <div class="form-group">
+                <label for="realname" class="col-sm-2 control-label"><span class="required-mark">*</span>真实姓名</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-with-parsley" id="realname" placeholder="输入真实姓名" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="realname" class="col-sm-2 control-label"><span class="required-mark">*</span>手机号码</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-with-parsley" id="phoneNum" placeholder="输入手机号码" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="bankName" class="col-sm-2 control-label"><span class="required-mark">*</span>银行名称</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-with-parsley" id="bankName" placeholder="输入银行名称" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="bankNum" class="col-sm-2 control-label"><span class="required-mark">*</span>银行账号</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-with-parsley" id="bankNum" placeholder="输入银行账号" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                  <button type="button" class="btn btn-primary" id="editBtn">修改</button>
+                </div>
+              </div>
+            </form>
+            </div>
+            <div class="main-container" id="editorStat">
+                <h2>录入工作量统计</h2>
+                <div class="btn-group editorStat-view-mode-wrapper">
+                  <button type="button" class="editorStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
+                  <button type="button" class="editorStat-view-mode btn btn-default" data-viewmode="day">按日显示</button>
+                  <button type="button" class="editorStat-view-mode btn btn-primary" data-viewmode="week">按周显示</button>
+                </div>
+                <span class="editorStat-period-wrapper">
+                    从<input type="date" placeholder="起始日期" id="editorStat-date-from"></input> 
+                    到<input type="date" placeholder="结束日期" id="editorStat-date-to"></input>
+
+                    筛选<input type="text" placeholder="teddywu" id="editorStat-input-editor"></input>
+                    <a herf="javascript:void(0);" class="btn btn-primary" id="editorStat-date-confirm">确定</a>
+                </span>
+                <table class="table" id="editorStatTable">
+                  <thead>
+                    <tr>
+                      <th>时间</th>
+                      <th>编辑</th>
+                      <th>忽略数量</th>
+                      <th>完成数量</th>
+                      <th>审核中数量</th>
+                      <th>驳回数量</th>
+                      <th>放弃数量</th>
+                      <th>发布数量</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                        <td>2014年8月22日</td>
+                        <td>teddywu</td>
+                        <td>1001</td>
+                        <td>1002</td>
+                        <td>1002</td>
+                        <td>1002</td>
+                        <td>1002</td>
+                    </tr>
+                  </tbody>
+                </table>
+            <div id="editorStatCanvasCantainer">
+            </div>
+
+            </div>
+
+            
+      </div>
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/vendor_seeInfo.js -->
+    <script src="bower_components/Chart.js-master/Chart.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/vendor_register.js -->
+    <script src="bower_components/iCheck/icheck.js"></script>
+    <script src="bower_components/kbootstrap-select/bootstrap-select.js"></script>
+    <script>
+            window.ParsleyConfig = {
+                errorsContainer : function (fieldInstance) {
+                    var errorMsgContainer = fieldInstance.$element.parent()
+                    return errorMsgContainer;
+                },
+              errorsWrapper: '<p class="parsley-errors-list"></p>',
+              errorTemplate: '<span></span>'
+            };
+    </script>
+    <script src="bower_components/parsleyjs/dist/parsley.js"></script>
+    <script src="bower_components/parsleyjs/src/i18n/zh_cn.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/me.js -->
+    <script src="scripts/region.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    
+    <script src="scripts/me_common.js"></script>
+    <script src="scripts/me_profile.js"></script>
+    <script src="scripts/me_editor.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

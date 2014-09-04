@@ -1,6 +1,6 @@
 __author__ = 'zhongqiling'
 
-from tornado.gen import  coroutine, Return
+from tornado.gen import coroutine, Return
 from functools import wraps
 from models.base import ValidationError, InvalidDocumentError
 from pymongo.errors import AutoReconnect

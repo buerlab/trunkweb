@@ -18,7 +18,10 @@ def cur_file_dir():
 class Logger(object):
     
     def __init__(self):
-        self.logger = self.createLogger()
+        try:
+            self.logger = self.createLogger()
+        except:
+            self.logger = None
 
     def createLogger(self):
         # 创建一个logger

@@ -7,7 +7,7 @@ import copy
 from appmodels import *
 from mylog import mylog, getLogText
 import json
-
+import calendar
 from models import *
 
 #打log 并加上DbServiceLog前缀
@@ -111,8 +111,18 @@ userDict = {
     "driverComments": ["objectid"],
 
     "ownerStars": 4,
-    "ownerComments": ["objectid"]
-    #usersetting
+    "ownerComments": ["objectid"],
+
+ #usersetting
+    "ownerSettings": {
+        "push":True,  #push推送
+        "locate":False   #gps定位
+    },
+    "driverSettings":{
+        "push":True,  #push推送
+        "locate":True   #gps定位
+    }
+
 }
 
 commentDict = {
@@ -138,10 +148,14 @@ trunkDict = {
     "trunkPicFilePaths":["123123.jpg","123123.jpg","123123.jpg"]
 }
 
+
 LocationDict = {
     "userId": "ObjectId()",
     "latitude": "string",
     "longitude": "string",
+    "prov":"string",
+    "city":"string",
+    "district":"string",
     "timestamp": "138545564554"
 }
 
@@ -230,6 +244,7 @@ class DbService(object):
                 self.mongo.trunkDb.authenticate(self.user, self.psw)
             self.mongo.trunkDb.regcodeCol.create_index([("timestamp", -1)])
             self.mongo.trunkDb.feedbackCol.create_index([("time", -1)])
+            self.mongo.trunkDb.LocationCol.create_index([("timestamp", -1)])
         except:
             mylog.getlog().info("db connect error!!")
             self.mongo = None
@@ -338,11 +353,12 @@ class DbService(object):
             print item["licensePlate"]
             print item["licensePlate"].encode("utf-8")
             if item["licensePlate"].encode("utf-8") == licensePlate:
-                for v in kwargs:
-                    item[v] = kwargs[v]
-                print "here"
-            else:
-                print "can not find this trunk"
+
+                item["licensePlate"] = kwargs["licensePlate"] if "licensePlate" in kwargs else None
+                item["type"] = kwargs["type"] if "type" in kwargs else None
+                item["length"] = kwargs["length"] if "length" in kwargs else None
+                item["load"] = kwargs["load"] if "load" in kwargs else None
+                item["trunkPicFilePaths"] = kwargs["trunkPicFilePaths"] if "trunkPicFilePaths" in kwargs else None
 
         user["trunks"] = trunks
         return self.mongo.trunkDb.userCol.update({"_id":ObjectId(userid)}, user, True)
@@ -388,6 +404,11 @@ class DbService(object):
                 "nickName": userData["nickName"] if "nickName" in userData else ""
             }
 
+            if "driverSettings" in userData and "locate" in userData["driverSettings"]:
+                data["canLocate"] = userData["driverSettings"]["locate"]
+            else:
+                data["canLocate"] = True
+
             for trunk in trunks:
                 if "isUsed" in trunk and trunk["isUsed"]:
                     data["trunkLicenseVerified"] = trunk["trunkLicenseVerified"]
@@ -396,6 +417,7 @@ class DbService(object):
 
     @checkDbConn
     def getUserCompleteData(self, userid, getType):
+
             userData = self.getUserBaseData(userid)
 
             if userData is None:
@@ -408,10 +430,12 @@ class DbService(object):
                 "stars": userData[getType+"Stars"] if getType+"Stars" in userData else 0,
                 "IDNumVerified": userData["IDNumVerified"] if "IDNumVerified" in userData else "0",
                 "nickName": userData["nickName"] if "nickName" in userData else "",
-                "phoneNum":userData["phoneNum"],
-                "homeLocation":userData["homeLocation"],
-                "regtime":userData["regtime"],
-                "userType":userData["userType"]
+                "phoneNum":userData["phoneNum"] if "phoneNum" in userData else "",
+                "homeLocation":userData["homeLocation"] if "homeLocation" in userData else "",
+                "regtime":userData["regtime"] if "regtime" in userData else "",
+                "userType":userData["userType"] if "userType" in userData else "driver",
+                "driverSettings":userData["driverSettings"] if "driverSettings" in userData else None,
+                "ownerSettings":userData["ownerSettings"] if "ownerSettings" in userData else None
             }
 
             if getType == "driver":
@@ -766,18 +790,89 @@ class DbService(object):
             dbserviceError("addLocation fail the param is not correct", userid, latitude, longitude, time)
             return False
 
+    @checkDbConn
+    def getLastLocation(self,userId):
+        if userId:
+            item =self.mongo.trunkDb.LocationCol.find({"userId":userId}).sort([("timestamp",-1)]).limit(1)
+            if item and item.count()>0:
+                print "getLastLocation", item[0]
+                return item[0]
+            else:
+                return None
+        else:
+            dbserviceError("getLastLocation fail the param is not correct", userId)
+            return None
+
+    @checkDbConn
+    def getLocation(self,userId):
+        if userId:
+            location =self.mongo.trunkDb.LocationCol.find({"userId":userId}).sort([("timestamp",-1)])
+            ret = []
+            for item in location:
+                ret.append(item)
+
+            return ret
+
+        else:
+            dbserviceError("getLastLocation fail the param is not correct", userid)
+            return None
     ############ Location相关(begin) #########
+
 
     ############ admin相关(begin) #########
     @checkDbConn
-    def addAdmin(self, username, encryptPsw):
-        self.mongo.trunkDb.adminCol.insert({"username": username, "psw": encryptPsw, "regtime": time.time()})
+    def addAdmin(self, username, encryptPsw,realname,phoneNum,bankName,bankNum):
+        print "addAdmin",username,encryptPsw,realname,phoneNum,bankName,bankNum
+        self.mongo.trunkDb.adminCol.insert({"username": username, 
+            "psw": encryptPsw, 
+            "realname":realname,
+            "phoneNum":phoneNum,
+            "bankName":bankName,
+            "bankNum":bankNum,
+            "regtime": time.time(),
+            "verifyPermission" : False,
+            "feedbackPermission" : False,
+            "addInfoPermission" : False,
+            "seeInfoPermission" : False,
+            "confirmInfoPermission" : False
+        })
+
+    @checkDbConn
+    def updateAdmin(self, userid,realname,phoneNum,bankName,bankNum):
+        user = self.mongo.trunkDb.adminCol.find_one({"_id": ObjectId(userid)})
+        if user:
+            if not realname is None:
+                user["realname"] = realname
+
+            if not phoneNum is None:
+                user["phoneNum"] = phoneNum
+
+            if not bankName is None:
+                user["bankName"] = bankName
+
+            if not bankNum is None:
+                user["bankNum"] = bankNum
+
+            self.mongo.trunkDb.adminCol.update({"_id": ObjectId(userid)},user)
+        else:
+            return False
+
 
     @checkDbConn
     def confirmAdmin(self, username, encryptPsw):
         condition = [{"username": username, "psw": encryptPsw}]
-        item = self.mongo.trunkDb.adminCol.find_one({"$or": condition})
-        return item["_id"] if item else False
+        item = self.mongo.trunkDb.adminCol.find_one({"$or": condition},{"psw": 0, "regtime": 0})
+        return item if item else False
+
+    @checkDbConn
+    def getAdmin(self, userid):
+        user = self.mongo.trunkDb.adminCol.find_one({"_id": ObjectId(userid)},{"psw": 0, "regtime": 0})
+        return user
+
+    @checkDbConn
+    def getAdmin(self, userid):
+        user = self.mongo.trunkDb.adminCol.find_one({"_id": ObjectId(userid)},{"psw": 0, "regtime": 0})
+        return user
 
     @checkDbConn
     def hasAdmin(self, username):
@@ -787,31 +882,31 @@ class DbService(object):
     ############ admin相关(end) #########
     @checkDbConn
     def getIDNumVerifyingUsers(self):
-        return [item for item in self.mongo.trunkDb.userCol.find({"IDNumVerified": "1"},
+        return [item for item in self.mongo.trunkDb.userCol.find({"IDNumVerified": 1},
                                                                  {"IDNum": 1, "_id": 1, "nickName": 1, "phoneNum": 1,
                                                                   "IDNumPicFilePath": 1})]
 
     @checkDbConn
     def passIDNumVerifying(self, userid):
-        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"IDNumVerified": "2"}})
+        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"IDNumVerified": 2}})
 
     @checkDbConn
     def failIDNumVerifying(self, userid):
-        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"IDNumVerified": "3"}})
+        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"IDNumVerified": 3}})
 
     @checkDbConn
     def getDriverLicenseVerifyingUsers(self):
-        return [item for item in self.mongo.trunkDb.userCol.find({"driverLicenseVerified": "1"},
+        return [item for item in self.mongo.trunkDb.userCol.find({"driverLicenseVerified": 1},
                                                                  {"IDNum": 1, "_id": 1, "nickName": 1, "phoneNum": 1,
                                                                   "driverLicense": 1, "driverLicensePicFilePath": 1})]
 
     @checkDbConn
     def passDriverLicenseVerifying(self, userid):
-        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"driverLicenseVerified": "2"}})
+        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"driverLicenseVerified": 2}})
 
     @checkDbConn
     def failDriverLicenseVerifying(self, userid):
-        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"driverLicenseVerified": "3"}})
+        self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, {"$set": {"driverLicenseVerified": 3}})
 
 
     @checkDbConn
@@ -819,22 +914,25 @@ class DbService(object):
         trunkList = []
         for item in self.mongo.trunkDb.userCol.find({"trunks": {"$exists": True}},
                                                     {"IDNum": 1, "_id": 1, "nickName": 1, "phoneNum": 1, "trunks": 1}):
-            # print item
+            print item
             if item.has_key("trunks"):
                 data = {}
                 data["_id"] = item["_id"]
-                if(data.has_key("IDNum")):
+                if(item.has_key("IDNum")):
                     data["IDNum"] = item["IDNum"]
 
-                if(data.has_key("nickName")):
+                if(item.has_key("nickName")):
                     data["nickName"] = item["nickName"]
 
-                if(data.has_key("phoneNum")):
+                if(item.has_key("phoneNum")):
                     data["phoneNum"] = item["phoneNum"]
 
+                print "data=",data
                 for trunk in item["trunks"]:
-                    if trunk.has_key("trunkLicenseVerified") and  trunk["trunkLicenseVerified"] == "1":
+                    if trunk.has_key("trunkLicenseVerified") and  trunk["trunkLicenseVerified"] == 1:
+                        print "trunk=",trunk
                         d = copy.copy(data)
+                        print "d=",d
                         if(trunk.has_key("trunkLicensePicFilePath")):
                             d["trunkLicensePicFilePath"] = trunk["trunkLicensePicFilePath"]
 
@@ -844,6 +942,7 @@ class DbService(object):
                         if(trunk.has_key("licensePlate")):
                             d["licensePlate"] = trunk["licensePlate"]
 
+                        print "d=",d
                         trunkList.append(d)
         return trunkList
 
@@ -860,7 +959,7 @@ class DbService(object):
                 # print "here"
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
                     print "here"
-                    trunk["trunkLicenseVerified"] = "2"
+                    trunk["trunkLicenseVerified"] = 2
                     self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
                     return True
 
@@ -874,14 +973,14 @@ class DbService(object):
             print
             for trunk in user["trunks"]:
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
-                    trunk["trunkLicenseVerified"] = "3"
+                    trunk["trunkLicenseVerified"] = 3
                     self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
                     return True
 
         return False
 
     @checkDbConn
-    def saveTrunkLicensePic(self, userid,licensePlate, path):
+    def saveTrunkLicensePic(self, userid,licensePlate, path,trunkLicense):
         user = self.mongo.trunkDb.userCol.find_one({"_id": ObjectId(userid)})
 
         if user and "trunks" in user:
@@ -893,7 +992,8 @@ class DbService(object):
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
                     print "here"
                     trunk["trunkLicensePicFilePath"] = path
-                    trunk["trunkLicenseVerified"] = "1"
+                    trunk["trunkLicense"] = trunkLicense
+                    trunk["trunkLicenseVerified"] = 1
                     self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
                     return True
 
@@ -976,16 +1076,17 @@ class DbService(object):
 
             if "userId" in item:
                 userData = self.getUserBaseData(item["userId"])
-                if userData.has_key("IDNum"):
-                    retItem["IDNum"] = userData["IDNum"]
+                if userData:
+                    if userData.has_key("IDNum"):
+                        retItem["IDNum"] = userData["IDNum"]
 
-                if(userData.has_key("nickName")):
-                    retItem["nickName"] = userData["nickName"]
+                    if(userData.has_key("nickName")):
+                        retItem["nickName"] = userData["nickName"]
 
-                if(userData.has_key("phoneNum")):
-                    retItem["phoneNum"] = userData["phoneNum"]
+                    if(userData.has_key("phoneNum")):
+                        retItem["phoneNum"] = userData["phoneNum"]
 
-            ret.append(retItem)
+                    ret.append(retItem)
         return ret
 
     def addFeedback(self,userid,feedbackString):
@@ -997,6 +1098,727 @@ class DbService(object):
             {"userId":userid,"feedbackString":feedbackString,"time":now}
         )
 
+ ############ 用户反馈(end) #########
+
+############ setting(begin) #########
+#     def setPushSettings(self,userid,usertype,state):
+#         userData = self.getUserBaseData(userid)
+#         if userData:
+#             if (usertype == "owner" or usertype == "driver") and type(state) == bool:
+#                 if not usertype + "Settings" in userData:
+#                     userData[usertype + "Settings"] = {}
+#
+#                 userData[usertype + "Settings"]["push"] = state
+#                 self.mongo.trunkDb.userCol.update({"_id":ObjectId(userid)},{"$set":{usertype + "Settings": userData[usertype + "Settings"]}} , True)
+#                 return True
+#             return False
+#         return False
+#
+#     def setGPSSettings(self,userid,usertype,state):
+#         userData = self.getUserBaseData(userid)
+#         if userData:
+#             if (usertype == "owner" or usertype == "driver") and type(state) == bool:
+#                 if not usertype + "Settings" in userData:
+#                     userData[usertype + "Settings"] = {}
+#
+#                 userData[usertype + "Settings"]["gps"] = state
+#                 self.mongo.trunkDb.userCol.update({"_id":ObjectId(userid)},{"$set":{usertype + "Settings": userData[usertype + "Settings"]}} , True)
+#                 return True
+#             return False
+#         return False
+#
+#
+# ############ setting(end) #########
 
 
- ############ 用户反馈(begin) #########
+
+ ############ Message(begin) #########
+
+#state : wait ignore done
+    def getToAddMessage(self,keyword,user):
+        condition = {}
+
+        if not keyword is None:
+            query = re.compile(keyword)
+            condition["$or"] = [
+                {"phonenum":query},
+                {"nickname":query},
+                {"content":query},
+                {"groupname":query},
+                {"groupid":query}
+            ]
+        ret = []
+
+        # 清除环境
+        for item in self.mongo.trunkDb.editingMessageCol.find({"editor":user}):
+            print "editingMessageCol item", item
+            toAddItem = self.mongo.trunkDb.toAddMessageCol.find_one({"_id":ObjectId(item["_id"])})
+            toAddItem["state"] = "wait"
+            toAddItem["editor"] = None
+
+            print "toAddItem",toAddItem
+
+            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},toAddItem)
+
+        self.mongo.trunkDb.editingMessageCol.remove({"editor":user})
+
+        for item in self.mongo.trunkDb.toAddMessageCol.find({"state":"wait"}).sort([("time",-1)]).limit(10):
+
+            item["state"] = "editing"
+            item["editor"] = user
+
+            print "item groupid",item["groupid"]
+            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},item)
+
+            self.mongo.trunkDb.editingMessageCol.insert(item)
+            ret.append(item)
+
+        return ret
+
+
+    def delToAddMessage(self,id,user):
+        self.mongo.trunkDb.editingMessageCol.remove({"_id": ObjectId(id)})
+        mes = self.mongo.trunkDb.toAddMessageCol.find_one({"_id": ObjectId(id)})
+        content = mes["content"]
+        mes["state"] = "ignore"
+        mes["editor"] = user
+        print mes
+        self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+
+        # condition = {}
+        # a = datetime.datetime.now()
+        # a = a.replace(a.year,a.month,a.day-1,0,0,0)
+        # ts = calendar.timegm(a.utctimetuple())
+        # # condition["time"] = {}
+        # # condition["time"]["$gt"] = ts * 1000
+        # condition["state"] = {
+        #     "$in" : ["wait", "editing"]
+        # }
+        # condition["content"] = content
+
+        # print "condition",condition
+        # for i in self.mongo.trunkDb.toAddMessageCol.find(condition):
+        #     print "--------------",i["_id"]
+        #     self.mongo.trunkDb.toAddMessageCol.update({"_id":i["_id"]},{"$set" :{"state":"ignore","editor":user}})
+
+
+    def doneToAddMessage(self,id,user):
+        self.mongo.trunkDb.editingMessageCol.remove({"_id": ObjectId(id)})
+        mes = self.mongo.trunkDb.toAddMessageCol.find_one({"_id": ObjectId(id)})
+        mes["state"] = "done"
+        mes["editor"] = user
+        print "mes",mes
+        self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+
+
+    def addToAddMessage(self,time,nickname,content,groupname,groupid,phonenum):
+
+        if(self.toAddMessageExist(time,content)):
+            return None
+
+        return self.mongo.trunkDb.toAddMessageCol.insert(
+            {"time":int(time),"nickname":nickname,"content":content,"groupid":groupid,"groupname":groupname,"phonenum": phonenum,"state":"wait"}
+        )
+
+    def toAddMessageExist(self,time,content):
+        a = datetime.datetime.now()
+        a = a.replace(a.year,a.month,a.day,0,0,0)
+        ts = calendar.timegm(a.utctimetuple()) * 1000
+
+        item = self.mongo.trunkDb.toAddMessageCol.find({"content":content,"time":{"$gt":ts}}).limit(1)
+        if item and item.count()>0:
+            print "一天内算是重复添加", item
+            # print '-------item[0]', item[0]
+            # print "time.time() - item[0].sendTime",(time.time() - item[0]["time"]/1000)
+            # if time.time() - item[0]["time"]/1000 < 24 * 60 * 60:
+            #     return True
+            # else:
+            #     return False
+            return True
+        else:
+            return False
+
+    def sendToAddMessage(self,user, **kwargs):
+        if kwargs:
+            print "sendToAddMessage=",kwargs
+            if self.AddedMessageExist(**kwargs):
+                return False
+            else:
+                kwargs["sendTime"] = time.time()
+                kwargs["editor"] = user
+                kwargs["state"] = "confirming"
+                return self.mongo.trunkDb.addedMessageCol.insert(kwargs)
+
+    def AddedMessageExist(self, **kwargs):
+        if kwargs:
+            print "AddedMessageExist=",kwargs
+            item = self.mongo.trunkDb.addedMessageCol.find({"fromAddr":kwargs["fromAddr"],
+                                                    "toAddr":kwargs["toAddr"],
+                                                    "userType":kwargs["userType"],
+                                                    "state":{"$in":["confirming","confirmed"]},
+                                                    "phoneNum":kwargs["phoneNum"]}).sort([("sendTime",-1)]).limit(1)
+            if item and item.count()>0:
+                # 一天内算是重复添加
+                print "time.time() - item[0].sendTime",(time.time() - item[0]["sendTime"])
+                if time.time() - item[0]["sendTime"] < 24 * 60 * 60:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+    def deleteAddedMessage(self, **kwargs):
+        if kwargs:
+            print "DeleteAddedMessage=",kwargs
+            item = self.mongo.trunkDb.addedMessageCol.find({"fromAddr":kwargs["fromAddr"],
+                                                    "toAddr":kwargs["toAddr"],
+                                                    "userType":kwargs["userType"],
+                                                    "phoneNum":kwargs["phoneNum"]}).sort([("sendTime",-1)]).limit(1)
+            print "item.count()",item.count()
+            if item and item.count()>0:
+                # 一天内算是重复添加
+
+                print "deleteAddedMessage time.time() - item[0].sendTime",(time.time() - item[0]["sendTime"])
+                if time.time() - item[0]["sendTime"] < 24 * 60 * 60:
+                    self.mongo.trunkDb.addedMessageCol.remove({"_id":ObjectId(item[0]["_id"])})
+                else:
+                    return False
+            else:
+                return False
+
+    def confirmMessage(self,id):
+        return self.mongo.trunkDb.addedMessageCol.update({"_id":ObjectId(id)},{"$set":{"state":"confirmed"}})
+
+    def giveupMessage(self,id):
+        return self.mongo.trunkDb.addedMessageCol.update({"_id":ObjectId(id)},{"$set":{"state":"giveup"}})
+
+    def modifyMessage(self,id):
+        return self.mongo.trunkDb.addedMessageCol.remove({"_id":ObjectId(id)})
+
+    def refuseMessage(self,id,reason):
+        return self.mongo.trunkDb.addedMessageCol.update({"_id":ObjectId(id)},{"$set":{"state":"refuse","reason":reason}},True)
+
+    def getRefuseMessage(self,username):
+        ret = []
+        for item in self.mongo.trunkDb.addedMessageCol.find({"editor":username,"state":"refuse"}):
+            ret.append(item)
+        return ret
+
+    def getWeekTimeStr(self,_time):
+        a = datetime.datetime.fromtimestamp(_time)
+        b = a.replace(a.year,a.month,a.day- a.weekday(),0,0,0,0)
+        c = a.replace(a.year,a.month,a.day +6 - a.weekday(),0,0,0,0)
+
+        b1 = time.strftime("t-%Y-%m-%d",b.timetuple())
+        c1 = time.strftime(":%Y-%m-%d",c.timetuple())
+        return b1 + c1
+
+    def getSummaryStat(self,viewmode,fromDate,toDate,editor,groupname):
+        ret = {}
+        ret["summary"] = {
+            "toAddMessageIgnoreCount":0,
+            "toAddMessageCount":0,
+            "toAddMessageDoneCount":0,
+            "toAddMessageWaitCount":0,
+            "addedMessageCount":0,
+            "confirmingMessageCount":0,
+            "refuseMessageCount":0,
+            "confirmedMessageCount":0,
+            "giveupMessageCount":0
+        }
+        
+        for item in self.mongo.trunkDb.toAddMessageCol.find():
+            flag = True
+            if not fromDate is None and int(item["time"])< int(fromDate):
+                flag = False
+
+            if not toDate is None and int(item["time"])> int(toDate) + 24 * 60 * 60 * 1000:
+                flag = False
+            if not editor is None and "editor" in item and editor != "all" and editor != item["editor"]:
+                flag = False
+            
+            if not groupname is None and "groupname" in item and groupname != "all" and not groupname in item["groupname"].encode("utf-8"):
+                flag = False
+
+            if flag:
+                ret["summary"]["toAddMessageCount"] = ret["summary"]["toAddMessageCount"] + 1
+                if not editor is None and "editor" in item:
+                    if not item["editor"] in ret["summary"]:
+                        ret["summary"][item["editor"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+
+                    ret["summary"][item["editor"]]["toAddMessageCount"] = ret["summary"][item["editor"]]["toAddMessageCount"] + 1
+
+                if not groupname is None and "groupname" in item:
+                    if not item["groupname"] in ret["summary"]:
+                        ret["summary"][item["groupname"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+
+                    ret["summary"][item["groupname"]]["toAddMessageCount"] = ret["summary"][item["groupname"]]["toAddMessageCount"] + 1
+
+                if viewmode == "day":
+                    if "time" in item:
+                        timestr = time.strftime("t-%Y-%m-%d",time.localtime(int(item["time"])/1000))
+                    else:
+                        timestr = "t-2014-09-01"
+                elif viewmode == "week":
+                    print '(int(item["time"])/1000)',(int(item["time"])/1000)
+                    timestr = self.getWeekTimeStr((int(item["time"])/1000))
+                else:
+                    timestr = time.strftime("t-%Y-%m",time.localtime(int(item["time"])/1000))
+
+                if not timestr in ret:
+                    ret[timestr] = {
+                        "toAddMessageIgnoreCount":0,
+                        "toAddMessageCount":0,
+                        "toAddMessageDoneCount":0,
+                        "toAddMessageWaitCount":0,
+                        "addedMessageCount":0,
+                        "confirmingMessageCount":0,
+                        "refuseMessageCount":0,
+                        "confirmedMessageCount":0,
+                        "giveupMessageCount":0
+                    }
+
+                if not editor is None and "editor" in item:
+                    if not item["editor"] in ret[timestr]:
+                        ret[timestr][item["editor"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+
+                if not groupname is None and "groupname" in item:
+                    if not item["groupname"] in ret[timestr]:
+                        ret[timestr][item["groupname"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+
+                ret[timestr]["toAddMessageCount"] = ret[timestr]["toAddMessageCount"] + 1
+
+                if not groupname is None and "groupname" in item:
+                    ret[timestr][item["groupname"]]["toAddMessageCount"] = ret[timestr][item["groupname"]]["toAddMessageCount"] + 1
+
+                if not editor is None and "editor" in item:
+                    ret[timestr][item["editor"]]["toAddMessageCount"] = ret[timestr][item["editor"]]["toAddMessageCount"]+1
+
+                if item["state"] == "ignore":
+                    ret["summary"]["toAddMessageIgnoreCount"] = ret["summary"]["toAddMessageIgnoreCount"] + 1
+                    ret[timestr]["toAddMessageIgnoreCount"] = ret[timestr]["toAddMessageIgnoreCount"] + 1
+                    if not editor is None and "editor" in item:
+                        ret[timestr][item["editor"]]["toAddMessageIgnoreCount"] = ret[timestr][item["editor"]]["toAddMessageIgnoreCount"]+1
+                        ret["summary"][item["editor"]]["toAddMessageIgnoreCount"] = ret["summary"][item["editor"]]["toAddMessageIgnoreCount"]+1
+
+                    if not groupname is None and "groupname" in item:
+                        ret[timestr][item["groupname"]]["toAddMessageIgnoreCount"] = ret[timestr][item["groupname"]]["toAddMessageIgnoreCount"]+1
+                        ret["summary"][item["groupname"]]["toAddMessageIgnoreCount"] = ret["summary"][item["groupname"]]["toAddMessageIgnoreCount"]+1
+
+                elif item["state"] == "done":
+                    ret["summary"]["toAddMessageDoneCount"] = ret["summary"]["toAddMessageDoneCount"] + 1
+                    ret[timestr]["toAddMessageDoneCount"] = ret[timestr]["toAddMessageDoneCount"] + 1
+                    if not editor is None and "editor" in item:
+                        ret[timestr][item["editor"]]["toAddMessageDoneCount"] = ret[timestr][item["editor"]]["toAddMessageDoneCount"]+1
+                        ret["summary"][item["editor"]]["toAddMessageDoneCount"] = ret["summary"][item["editor"]]["toAddMessageDoneCount"]+1
+
+                    if not groupname is None and "groupname" in item:
+                        ret[timestr][item["groupname"]]["toAddMessageDoneCount"] = ret[timestr][item["groupname"]]["toAddMessageDoneCount"]+1
+                        ret["summary"][item["groupname"]]["toAddMessageDoneCount"] = ret["summary"][item["groupname"]]["toAddMessageDoneCount"]+1
+
+                elif item["state"] == "wait":
+                    ret["summary"]["toAddMessageWaitCount"] = ret["summary"]["toAddMessageWaitCount"] + 1
+                    ret[timestr]["toAddMessageWaitCount"] = ret[timestr]["toAddMessageWaitCount"] + 1
+                    if not editor is None and "editor" in item:
+                        ret[timestr][item["editor"]]["toAddMessageWaitCount"] = ret[timestr][item["editor"]]["toAddMessageWaitCount"]+1
+                        ret["summary"][item["editor"]]["toAddMessageWaitCount"] = ret["summary"][item["editor"]]["toAddMessageWaitCount"]+1
+
+                    if not groupname is None and "groupname" in item:
+                        # print '----------item["groupname"]',item["groupname"]
+                        ret[timestr][item["groupname"]]["toAddMessageWaitCount"] = ret[timestr][item["groupname"]]["toAddMessageWaitCount"]+1
+                        ret["summary"][item["groupname"]]["toAddMessageWaitCount"] = ret["summary"][item["groupname"]]["toAddMessageWaitCount"]+1
+
+                
+        for item in self.mongo.trunkDb.addedMessageCol.find():
+            flag = True
+            if not fromDate is None and int(item["sendTime"]) * 1000< int(fromDate):
+                flag = False
+
+            if not toDate is None and int(item["sendTime"]) * 1000>int(toDate) +  24 * 60 * 60 * 1000 :
+                flag = False
+
+            if not editor is None and "editor" in item and editor != "all" and editor != item["editor"]:
+                flag = False
+
+            if not "state" in item:
+                item["state"] = "confirmed"
+                self.mongo.trunkDb.addedMessageCol.update({"_id":item["_id"]}, {"$set":{"state":"confirmed"}})
+
+            if flag:
+                ret["summary"]["addedMessageCount"] = ret["summary"]["addedMessageCount"] + 1
+
+                ret["summary"][ item["state"] + "MessageCount"] = ret["summary"][ item["state"] + "MessageCount"]  + 1
+
+                if not editor is None and "editor" in item:
+                    if not item["editor"] in ret["summary"]:
+                        ret["summary"][item["editor"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+                        
+                    ret["summary"][item["editor"]]["addedMessageCount"] = ret["summary"][item["editor"]]["addedMessageCount"] + 1
+                    ret["summary"][item["editor"]][ item["state"] + "MessageCount"] = ret["summary"][item["editor"]][ item["state"] + "MessageCount"]  + 1
+
+                if(viewmode == "day"):
+                    timestr = time.strftime("t-%Y-%m-%d",time.localtime(int(item["sendTime"])))
+                elif viewmode == "week":
+                    timestr = self.getWeekTimeStr(int(item["sendTime"]))
+                else:
+                    timestr = time.strftime("t-%Y-%m",time.localtime(int(item["sendTime"])))
+                if not timestr in ret:
+                        ret[timestr] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+                ret[timestr]["addedMessageCount"] = ret[timestr]["addedMessageCount"] + 1
+                ret[timestr][ item["state"] + "MessageCount"] = ret[timestr][ item["state"] + "MessageCount"] + 1
+
+                if not editor is None and "editor" in item:
+                    if not item["editor"] in ret[timestr]:
+                        ret[timestr][item["editor"]] = {
+                            "toAddMessageIgnoreCount":0,
+                            "toAddMessageCount":0,
+                            "toAddMessageDoneCount":0,
+                            "toAddMessageWaitCount":0,
+                            "addedMessageCount":0,
+                            "confirmingMessageCount":0,
+                            "refuseMessageCount":0,
+                            "confirmedMessageCount":0,
+                            "giveupMessageCount":0
+                        }
+                    ret[timestr][item["editor"]]["addedMessageCount"] = ret[timestr][item["editor"]]["addedMessageCount"] + 1
+                    ret[timestr][item["editor"]][ item["state"] + "MessageCount"] = ret[timestr][item["editor"]][ item["state"] + "MessageCount"] +1
+        return ret;
+
+    def getRegionSummaryStat(self,viewmode,fromDate,toDate,region,regionmode,usertype):
+        ret = {}
+        for item in self.mongo.trunkDb.addedMessageCol.find():
+            # print item
+            flag = True
+            if not fromDate is None and int(item["sendTime"]) * 1000< int(fromDate):
+                print 'region != "prov" and region != "city" and region !="district"'
+                flag = False
+
+            if not toDate is None and int(item["sendTime"]) * 1000>int(toDate) +  24 * 60 * 60 * 1000 :
+                print 'region != "prov" and region != "city" and region !="district"'
+                flag = False
+
+            if regionmode != "prov" and regionmode != "city" and regionmode !="district":
+                print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
+                flag = False
+
+            #根据货源来筛选
+            if not usertype is None and usertype != "all" and usertype != item["userType"]:
+                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                flag = False
+
+            #排除格式不对的
+            if len(item["fromAddr"].split("-"))!=3 or len(item["toAddr"].split("-"))!=3:
+                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                flag = False
+
+            #筛选
+            if not region is None and region != "all" and (not region in item["fromAddr"].encode("utf-8") and not region in item["toAddr"].encode("utf-8")):
+                print region,item["fromAddr"],item["toAddr"]
+                print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
+                flag = False
+
+            # print "flag",flag
+            if flag:
+                if not "summary" in ret:
+                    ret["summary"] = {}
+
+                if(regionmode == "prov"):
+                    fromStr = item["fromAddr"].split("-")[0]
+                    toStr = item["toAddr"].split("-")[0]
+                elif(regionmode == "city"):
+                    fromStr = item["fromAddr"].split("-")[1]
+                    toStr = item["toAddr"].split("-")[1]
+                else:
+                    fromStr = item["fromAddr"].split("-")[2]
+                    toStr = item["toAddr"].split("-")[2]
+
+                if(viewmode == "day"):
+                    timestr = time.strftime("t-%Y-%m-%d",time.localtime(int(item["sendTime"])))
+                elif viewmode == "week":
+                    timestr = self.getWeekTimeStr(int(item["sendTime"]))    
+                else:
+                    timestr = time.strftime("t-%Y-%m",time.localtime(int(item["sendTime"])))
+
+                if not fromStr in ret["summary"]:
+                    ret["summary"][fromStr] = {
+                        "from":0,
+                        "to":0
+                    }
+                if not toStr in ret["summary"]:
+                    ret["summary"][toStr] = {
+                        "from":0,
+                        "to":0
+                    }
+
+                ret["summary"][fromStr]["from"] = ret["summary"][fromStr]["from"] + 1
+                ret["summary"][toStr]["to"] = ret["summary"][toStr]["to"] + 1
+
+                if not timestr in ret:
+                    ret[timestr] = {}
+
+                if not fromStr in ret[timestr]:
+                    ret[timestr][fromStr] = {
+                        "from":0,
+                        "to":0
+                    }
+                if not toStr in ret[timestr]:
+                    ret[timestr][toStr] = {
+                        "from":0,
+                        "to":0
+                    }
+
+                ret[timestr][fromStr]["from"] = ret[timestr][fromStr]["from"] + 1
+                ret[timestr][toStr]["to"] = ret[timestr][toStr]["to"] + 1
+
+        return ret
+
+    def getRouteSummaryStat(self,viewmode,fromDate,toDate,region,regionmode,usertype):
+        ret = {}
+        for item in self.mongo.trunkDb.addedMessageCol.find():
+            # print item
+            flag = True
+            if not fromDate is None and int(item["sendTime"]) * 1000< int(fromDate):
+                print 'region != "prov" and region != "city" and region !="district"'
+                flag = False
+
+            if not toDate is None and int(item["sendTime"]) * 1000>int(toDate) +  24 * 60 * 60 * 1000 :
+                print 'region != "prov" and region != "city" and region !="district"'
+                flag = False
+
+            if regionmode != "prov" and regionmode != "city" and regionmode !="district":
+                print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
+                flag = False
+
+            #根据货源来筛选
+            if not usertype is None and usertype != "all" and usertype != item["userType"]:
+                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                flag = False
+
+            #排除格式不对的
+            if len(item["fromAddr"].split("-"))!=3 or len(item["toAddr"].split("-"))!=3:
+                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                flag = False
+
+            #筛选
+            if not region is None and region != "all" and (not region in item["fromAddr"].encode("utf-8") and not region in item["toAddr"].encode("utf-8")):
+                print region,item["fromAddr"],item["toAddr"]
+                print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
+                flag = False
+
+            print "flag",flag
+            if flag:
+                if not "summary" in ret:
+                    ret["summary"] = {}
+
+                if(regionmode == "prov"):
+                    fromStr = item["fromAddr"].split("-")[0]
+                    toStr = item["toAddr"].split("-")[0]
+                elif(regionmode == "city"):
+                    fromStr = item["fromAddr"].split("-")[1]
+                    toStr = item["toAddr"].split("-")[1]
+                else:
+                    fromStr = item["fromAddr"].split("-")[2]
+                    toStr = item["toAddr"].split("-")[2]
+
+                if(viewmode == "day"):
+                    timestr = time.strftime("t-%Y-%m-%d",time.localtime(int(item["sendTime"])))
+                elif viewmode == "week":
+                    timestr = self.getWeekTimeStr(int(item["sendTime"]))
+                else:
+                    timestr = time.strftime("t-%Y-%m",time.localtime(int(item["sendTime"])))
+
+                addrStr = fromStr + "-" + toStr
+
+                if not addrStr in ret["summary"]:
+                    ret["summary"][addrStr] = {
+                        "count":0
+                    }
+
+                ret["summary"][addrStr]["count"] = ret["summary"][addrStr]["count"] + 1
+
+                if not timestr in ret:
+                    ret[timestr] = {}
+
+                if not addrStr in ret[timestr]:
+                    ret[timestr][addrStr] = {
+                        "count":0
+                    }
+
+                ret[timestr][addrStr]["count"] = ret[timestr][addrStr]["count"] + 1
+
+        return ret
+
+
+    def getToAddStat(self,statemode,fromDate,toDate,keyword,page,perpage):
+        condition = {}
+        if not statemode is None:
+            if statemode != "all":
+                condition["state"] = statemode
+
+        if not fromDate is None:
+            if not "time" in condition:
+                condition["time"] = {}
+
+            condition["time"]["$gt"] = int(fromDate)
+
+        if not toDate is None:
+            if not "time" in condition:
+                condition["time"] = {}
+            condition["time"]["$lt"] = int(toDate) + 24 * 60 * 60 * 1000
+
+        if not keyword is None:
+            query = re.compile(keyword)
+            condition["$or"] = [
+                {"phonenum":query},
+                {"nickname":query},
+                {"content":query},
+                {"groupname":query},
+                {"groupid":query},
+                {"editor":query}
+            ]
+
+        if page is None or page <=0:
+            page = 1
+        if perpage is None:
+            perpage = 50
+
+        start = (page -1) * perpage
+
+        print "condition",condition
+
+        data = self.mongo.trunkDb.toAddMessageCol.find(condition).skip(start)
+        pageCount = int(self.mongo.trunkDb.toAddMessageCol.find(condition).count()/perpage) +1
+        ret = {
+            "pageCount" : pageCount,
+            "curPage":page,
+            "data" : []
+        }
+        for item in data.limit(perpage):
+            ret["data"].append(item)
+        return ret
+
+    def getAddedStat(self,fromDate,toDate,keyword,page,perpage,usertype,fromAddr,toAddr,state):
+        condition = {}
+
+        if not usertype is None:
+            if usertype != "all":
+                condition["userType"] = usertype
+
+        if not fromAddr is None:
+            query = re.compile(fromAddr)
+            condition["fromAddr"] = query
+
+        if not toAddr is None:
+            query = re.compile(toAddr)
+            condition["toAddr"] = query
+
+        if not fromDate is None:
+            if not "sendTime" in condition:
+                condition["sendTime"] = {}
+
+            condition["sendTime"]["$gt"] = int(fromDate)/1000
+
+        if not toDate is None:
+            if not "sendTime" in condition:
+                condition["sendTime"] = {}
+
+            condition["sendTime"]["$lt"] = int(toDate)/1000 + 24 * 60 * 60
+
+        if not state is None:
+            if state != "all":
+                condition["state"] = state
+
+        if not keyword is None:
+            query = re.compile(keyword)
+            condition["$or"] = [
+                {"phoneNum":query},
+                {"fromAddr":query},
+                {"toAddr":query},
+                {"senderName":query},
+                {"sendTime":query},
+                {"comment":query},
+                {"editor":query}
+            ]
+
+        if page is None or page <=0:
+            page = 1
+        if perpage is None:
+            perpage = 50
+
+        start = (page -1) * perpage
+
+        print "condition",condition
+
+        data = self.mongo.trunkDb.addedMessageCol.find(condition).skip(start)
+        pageCount = int(self.mongo.trunkDb.addedMessageCol.find(condition).count()/perpage) +1
+        ret = {
+            "pageCount" : pageCount,
+            "curPage":page,
+            "data" : []
+        }
+        for item in data.limit(perpage):
+            ret["data"].append(item)
+        return ret
+ ############ Message(end) #########
+
+

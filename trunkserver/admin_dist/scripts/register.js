@@ -77,6 +77,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -88,14 +91,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},
@@ -111,7 +110,7 @@ if(localStorage){
 
 
 $(function() {
-	registerFormParsley = $('#registerForm').parsley();
+	var registerFormParsley = $('#registerForm').parsley();
 		$("#registerBtn").click(function(){
 		   registerFormParsley.validate();
 
@@ -137,7 +136,7 @@ $(function() {
 			dataType: "json",
 			success: function(data) {
 				dataProtocolHandler(data,function(){
-					showTips("注册成功");
+					showTips("注册成功，你现在还没有任何权限，联系18575594301或15507507400开通权限");
 					location.href = "/";
 				},function(code,msg,data,dataType){
 					if(code == -7){

@@ -7,6 +7,9 @@ from bson.objectid import ObjectId
 import os
 import  random
 from  jpush.RegCodeService import RegCode
+import md5
+import calendar
+from datetime import datetime
 
 service = DbService().connect()
 
@@ -55,7 +58,16 @@ def deleteUser(phoneNum):
 def deleteUserById(userid):
     service.mongo.trunkDb.userCol.remove({"_id":ObjectId(userid)})
 
+
+def getAllLocation():
+    for item in service.mongo.trunkDb.LocationCol.find():
+        print item
+
+
+# getAllLocation()
+# service.getLastLocation("53c4b2407938ee1089520738")
 # deleteUser("15507507400")
+# print service.getLocation("53c4b2407938ee1089520738")
 
 # deleteUserById("53ae236b7938ee4ce851148b")
 # setIDNumVerify()
@@ -181,11 +193,11 @@ def deleteUserById(userid):
 # service.addComment(**{
 #     "starNum":3, #0,1,2,3
 #     "userType":"driver",
-#     "text":"吴货主态度很好22222",
+#     "text":"感谢tod的帮忙！太给力了@@",
 #     "commentTime":"138545584554",
-#     "fromUserName":"aaaa",
-#     "fromUserId":"53b663f27938ee6c041f14e3",
-#     "toUserId":"53b663f27938ee6c041f14e3",
+#     "fromUserName":"teddy",
+#     "fromUserId":"53c38b347938ee65f08ef387",
+#     "toUserId":"53c4e3937938ee38e9fb00e4",
 #     "billId":"5399818a7938ee399731c688"
 #     })
 # getAllUser()
@@ -232,7 +244,9 @@ def deleteUserById(userid):
 # deleteUser("15507507408")
 #
 # getAllUser()
-# getUserByPhoneNum("18503003832")
+# getUserByPhoneNum("13417473149")
+
+# getUserByPhoneNum("15811804083")
 # deleteAllComments()
 # print service.getUserComments("53bd6d1d7938ee71fc2bb408","driver",0,-1)
 #
@@ -261,5 +275,66 @@ def deleteUserById(userid):
 #
 # print  service.updateUserATrunk("53c38b347938ee65f08ef387",**t)
 
-service.addFeedback("53c38b347938ee65f08ef387","hello")
-print service.getFeedback()
+# service.addFeedback("53c38b347938ee65f08ef387","hello")
+# print service.getFeedback()
+
+# print service.getUserTrunk("53c38b347938ee65f08ef387","搞糊涂")
+
+# print service.setUsedTrunk("53c38b347938ee65f08ef387","搞糊涂")
+
+# service.setPushSettings("53bd74417938ee7ae66ed34e","owner",False)
+# print getUserById("53bd74417938ee7ae66ed34e")
+# getUserByPhoneNum("12345678900") #53bd74417938ee7ae66ed34e
+
+# getUserByPhoneNum("15507507411")
+# print service.getUserTrunks("53bd6bd07938ee71fc2bb407")
+
+# print service.getUserBaseData("53bd6bd07938ee71fc2bb407")
+
+# service.updateUser("53bd6bd07938ee71fc2bb407",**{"IDNumVerified":"0"})
+
+# def encryptPassword(psw):
+#     return md5.new("hello"+ psw + "world").hexdigest()
+
+# service.addUser("admin", "12345678900", encryptPassword("hust430074"))  #id = 53e9cd5915a5e45c43813d1c
+
+# service.doneToAddMessage("53ec7a307938ee66168e266f")
+# print service.mongo.trunkDb.toAddMessage.find_one({"_id":ObjectId("53ec7a307938ee66168e266f")})
+
+
+# print service.getSummaryStat("day",None,None,"teddywu",None)
+
+# print service.getRegionSummaryStat("day",None,None,None,"prov",None)
+
+# for item in service.mongo.trunkDb.toAddMessageCol.find():
+#     id = item["_id"]
+#     time = item["time"]
+#     time_d = int(time)
+#     item["time"] = time_d
+#     service.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(id)},item)
+# print len(service.getToAddStat("wait",0,None,None,None,None))
+
+# print service.getToAddMessage(None,"teddywu")
+
+# print service.getIDNumVerifyingUsers()
+
+# print service.getAdmin("teddywu8")
+
+# content = "车讯：深圳回广州7米6箱式车 电联18502088009"
+# condition = {}
+# a = datetime.now()
+# a = a.replace(a.year,a.month,a.day,0,0,0)
+# ts = calendar.timegm(a.utctimetuple())
+# condition["time"] = {}
+# condition["time"]["$gt"] = ts * 1000
+# condition["state"] = {
+#     "$in" : ["wait", "editing"]
+# } 
+# condition["content"] = content
+# condition["_id"] = ObjectId("5401d1e57938ee2dcad60cad")
+# service.mongo.trunkDb.toAddMessageCol.update(condition,{"$set": {"state":"ignore"} })
+# for i in service.mongo.trunkDb.toAddMessageCol.find(condition):
+#     service.mongo.trunkDb.toAddMessageCol.update(condition,{"$set": {"state":"wait"} })
+
+for item in service.mongo.trunkDb.addedMessageCol.find({"editor":"teddywu","state":"refuse"}):
+    print item

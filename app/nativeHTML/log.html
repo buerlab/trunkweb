@@ -1,0 +1,85 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <title>Log</title>
+    <!-- htmlbuild:section meta -->
+    <!-- /htmlbuild -->
+
+    <!-- htmlbuild:section bootstrap_ie6_link -->
+    <!-- /htmlbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/log.css -->
+    <link rel="stylesheet" href="styles/log.css">
+    <!-- endbuild -->
+
+
+    <!-- htmlbuild:section compatible -->
+    <!-- /htmlbuild -->    
+</head>
+<body >
+
+    <!-- htmlbuild:section nav -->
+    <!-- /htmlbuild -->
+    <div class="main">
+        <div class="col-sm-2 my-panel">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Log列表
+              </h3>
+            </div>
+            <div class="list-group">
+              <a href="javascript:void(0);" class="menu-item list-group-item active" data-id="profile">我的资料</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="editorStat">录入工作量统计</a>
+            </div>
+          </div>
+        </div>
+      <div class="col-sm-10 main-container-wrapper">
+         <div class="btn-group">
+              <button type="button" class="log-view-mode btn btn-primary" data-viewmode="顺序">顺序</button>
+              <button type="button" class="log-view-mode btn btn-default" data-viewmode="倒序">倒序</button>
+          </div>
+
+          <span class="">
+              关键词<input type="text" placeholder="ERROR" id="keyword"></input>
+              <a herf="javascript:void(0);" class="btn btn-primary" id="confirm">确定</a>
+            </span>
+          <div class="log-container"></div>      
+      </div>
+    </div>
+    
+    <!-- htmlbuild:section google_analytics -->
+    <!-- /htmlbuild -->
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/log.js -->
+    <script src="scripts/region.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    
+    <script src="scripts/log.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

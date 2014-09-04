@@ -1,8 +1,8 @@
 from base import BaseDocument, BaseField, ComplexBaseField
 from bson import Binary, DBRef, ObjectId
-from query import QuerySet, DO_NOTHING
 from operator import itemgetter
 import re, decimal, datetime, time, warnings, uuid
+from query import QuerySet, DO_NOTHING
 
 
 class ObjectIdField(BaseField):
@@ -22,6 +22,9 @@ class ObjectIdField(BaseField):
                 # e.message attribute has been deprecated since Python 2.6
                 self.error(unicode(e))
         return value
+
+    def to_client(self, value):
+        return str(value)
 
     def prepare_query_value(self, op, value):
         return self.to_mongo(value)
@@ -214,7 +217,7 @@ class TimeStampField(FloatField):
         """Descriptor for assigning a value to a field in a document.
         """
         try:
-            value = float(value)
+            value = int(float(value))
             if value > 999999999999:
                 value = value*0.001
             super(TimeStampField, self).__set__(instance, value)

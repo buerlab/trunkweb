@@ -1,0 +1,13 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
+.all-tr{
+    background-color: #ccc;
+}
+
+.main-container{
+    background-color: white;
+    min-height: 300px;
+    display: none;
+}

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-f
 
 from bson import ObjectId, DBRef, SON
+from query import *
 from collections import defaultdict
-from query import QuerySetManager
 import weakref, operator
+
 
 ALLOW_INHERITANCE = True
 
@@ -142,6 +143,9 @@ class BaseField(object):
 
     def to_son(self, value):
         return self.to_mongo(value)
+
+    def to_client(self, value):
+        return value
 
     def prepare_query_value(self, op, value):
         """Prepare a value that is being used in a query for PyMongo.
@@ -342,7 +346,8 @@ class DocumentMetaclass(type):
         attrs['_fields'] = doc_fields
         attrs['_db_field_map'] = { k : getattr(v, 'db_field', k) for k, v in doc_fields.iteritems()}
         attrs['_reverse_db_field_map'] = { v : k for k, v in attrs['_db_field_map'].iteritems()}
-        attrs['objects'] = QuerySetManager()
+        # attrs['objects'] = QuerySetManager()
+        attrs["objects"] = QueryDesc()
 
         # Create the new_class
         new_class = super_new(cls, name, bases, attrs)
@@ -375,7 +380,6 @@ class BaseDocument(object):
     def __init__(self, **values):
         self._data = {}
         self._changed_fields = set()
-
         self.merge(**values)
 
         self._initialised = True

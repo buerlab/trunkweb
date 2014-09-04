@@ -1,4 +1,3 @@
-from query import *
 from document import *
 from fields import *
 

@@ -1,6 +1,9 @@
 #encoding=utf-8
+
+from appmodels import *
 import urllib, urllib2
 import base64, json
+import sys
 
 notificationDict = {
     "alert":"",
@@ -16,6 +19,11 @@ messageDict = {
     "extras":{}
 }
 
+canJPush = True
+JPushCurrAuth = ""
+JPushOwnerAuth = "cee61b3f886124cfba3dca69:269fa6630d8ce960aa8085b8"
+JPushDriverAuth = "925cbe63935b3fdde4541b89:d97c3582a59e913464b7e4a5"
+
 def createAlias(userid, usertype):
     return userid+str(usertype)
 
@@ -23,16 +31,39 @@ def createAlias(userid, usertype):
 class JPushProtocal(object):
     PHONE_CALL = 1
     BILL_VISITED = 2
+    BILL_CONFIRM = 3
+    HISTORY_BILL_CONFIRM = 4
+    HISTORY_BILL_REQ = 5
+    RECOMMEND_BILL = 6
 
+def createNotification(alert, title="天天回程车"):
+    return {"notification":{"alert":alert,"title":title}}
 
-def createprotocol(protType, msg=""):
-    return {"code":protType, "msg":msg}
+#userid是指要发送对象的userid， 客户端要校验才会接受
+def createprotocol(userId, protType, msg=""):
+    return {"code":protType, "userId":userId, "msg":msg}
 
-def createBillReqMsg(senderName, reqId):
+def createBillReqMsg(userId, senderName, reqId):
     data = {"senderName":senderName, "reqId":reqId}
-    return createprotocol(JPushProtocal.PHONE_CALL, data)
+    return createprotocol(userId, JPushProtocal.PHONE_CALL, data)
 
-def JPushNotifyAll(alert, msg={}):
+def createHistoryBillReqMsg(userId, senderName, reqId, billId):
+    data = {"senderName":senderName, "reqId":reqId, "billId":billId}
+    return createprotocol(userId, JPushProtocal.HISTORY_BILL_REQ, data)
+
+def createBillConfirmMsg(userId, senderName, billId):
+    data = {"senderName":senderName, "billId":billId}
+    return createprotocol(userId, JPushProtocal.BILL_CONFIRM, data)
+
+def createHistoryBillConfirmMsg(userId, senderName, billId):
+    data = {"senderName":senderName, "historyBillId":billId}
+    return createprotocol(userId, JPushProtocal.HISTORY_BILL_CONFIRM, data)
+
+def createRecomendBillMsg(userId, bill):
+    data = {"bill": bill}
+    return createprotocol(userId, JPushProtocal.RECOMMEND_BILL, data)
+
+def JPushNotifyAll(alert, msg={}, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":"all",
@@ -41,9 +72,9 @@ def JPushNotifyAll(alert, msg={}):
             "extras":msg
         }
     }
-    JPush(parms)
+    JPush(parms, toUserType)
 
-def JPushNotifyToId(id, alert):
+def JPushNotifyToId(id, alert, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":{
@@ -54,10 +85,10 @@ def JPushNotifyToId(id, alert):
             "title":"天天回程车"
         }
     }
-    JPush(parms)
+    JPush(parms, toUserType)
 
 
-def JPushNotifyToAlias(alias, alert, msg={}):
+def JPushNotifyToAlias(alias, alert, msg={}, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":{
@@ -65,17 +96,16 @@ def JPushNotifyToAlias(alias, alert, msg={}):
         },
         "notification":{
             "alert":alert,
-            "title":"天天回程车",
-            "extras":msg
+            "title":"天天回程车"
         },
         "message":{
             "msg_content":msg
         }
     }
-    JPush(parms)
+    JPush(parms, toUserType)
 
 
-def JPushMsgAll(msg):
+def JPushMsgAll(msg, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":"all",
@@ -83,10 +113,10 @@ def JPushMsgAll(msg):
             "msg_content":msg
         }
     }
-    JPush(parms)
+    JPush(parms, toUserType)
 
 
-def JPushMsgTo(alias, msg):
+def JPushMsgTo(alias, msg, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":{
@@ -96,10 +126,10 @@ def JPushMsgTo(alias, msg):
             "msg_content":msg
         }
     }
-    JPush(parms)
+    JPush(parms, toUserType)
 
 
-def JPushMsgToId(id, msg):
+def JPushMsgToId(id, msg, toUserType = ""):
     parms = {
         "platform":"all",
         "audience":{
@@ -109,20 +139,51 @@ def JPushMsgToId(id, msg):
             "msg_content":msg
         }
     }
-    JPush(parms)
-    print "push:  ", json.dumps(parms)
+    JPush(parms, toUserType)
 
 
-def JPush(parms):
+def JPushToId(id, notification=None, msg=None, toUserType=""):
+    parms = {
+        "platform":"all",
+        "audience":{
+            "registration_id":[id]
+        }
+    }
+    if notification:
+        parms.update(notification)
+    if msg:
+        parms.update({"message":{"msg_content":msg}})
+    JPush(parms, toUserType)
+
+def initPush(toUsertype):
+    global JPushCurrAuth
+    JPushCurrAuth = JPushDriverAuth if toUsertype == UserType.DRIVER else JPushOwnerAuth
+
+#务必指明userType，决定推送的authkey
+def JPush(parms, toUserType = ""):
     data = json.dumps(parms)
+    authId = ""
+    if toUserType == UserType.DRIVER:
+        authId = JPushDriverAuth
+    elif toUserType == UserType.OWNER:
+        authId = JPushOwnerAuth
+    elif JPushCurrAuth:
+        authId = JPushCurrAuth
 
-    authStr = "c6561ed88743cb91d34b8572:24728d0cf947c98489876097"
-    b64AuthStr = base64.b64encode(authStr)
-
-    req = urllib2.Request("https://api.jpush.cn/v3/push", data)
-    req.add_header("Content-type", "application/json")
-    req.add_header("Authorization", "Basic "+b64AuthStr)
-    resp = urllib2.urlopen(req)
-    print "JPUSH RESPONSE:",resp.read()
+    if authId:
+        b64AuthStr = base64.b64encode(authId)
+        try:
+            req = urllib2.Request("https://api.jpush.cn/v3/push", data)
+            req.add_header("Content-type", "application/json")
+            req.add_header("Authorization", "Basic "+b64AuthStr)
+            resp = urllib2.urlopen(req)
+            print "JPUSH RESPONSE:",resp.read()
+        except Exception, e:
+            print "****jpush error caught****", e.message
+            exc_type, exc_value, traceback = sys.exc_info()
+            sys.excepthook(exc_type, exc_value, traceback)
+            print "***********"
+    else:
+        raise Exception("JPUSH HASN'T INIT")
 
 

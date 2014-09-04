@@ -1,0 +1,186 @@
+<!doctype html>
+<html class="no-js">
+
+<head>
+    <title>常规路线</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- build:css(app) styles/ie6.css -->
+    <!--[if lte IE 6]>
+  <link rel="stylesheet" type="text/css" href="bower_components/bootstrap-ie/bootstrap/css/bootstrap-ie6.css">
+  <link rel="stylesheet" type="text/css" href="bower_components/bootstrap-ie/bootstrap/css/ie.css">
+<![endif]-->
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/base.css -->
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) styles/regular.css -->
+    <link rel="stylesheet" href="styles/regular.css">
+    <!-- endbuild -->
+
+    <!-- build:js scripts/vendor/modernizr.js -->
+    <script src="bower_components/modernizr/modernizr.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/compatible.js -->
+    <!--[if lt IE 9]>
+    <script src="bower_components/html5shiv/dist/html5shiv.js"></script>
+    <script src="bower_components/respond/src/respond.js"></script>
+<![endif]-->
+    <!-- endbuild -->
+
+    <!-- build:js scripts/bootstrap-ie.js -->
+    <!--[if lte IE 6]>
+    <script type="text/javascript" src="bower_components/bootstrap-ie/js/bootstrap-ie.js"></script>
+<![endif]-->
+    <!-- endbuild -->
+
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div>
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">天天回程车管理端</a>
+            </div>
+
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown navOperate verifyPermission" style="display:none">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      审核各种证 <span class="caret"></span>
+                    </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a id="navVerifyIDNum" class="" href="verifyIDNum.html"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                            </li>
+                            <li><a id="navVerifyDriverLicense" class="" href="verifyDriverLicense.html"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
+                            </li>
+                            <li><a id="navVerifyTrunkLicense" class="" href="verifyTrunkLicense.html"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li><a id="navFeedback" class="navOperate feedbackPermission" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
+                    </li>
+                    <li><a id="navAddInfo" class="navOperate addInfoPermission" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源</a>
+                    </li>
+                    <li><a id="navSeeInfo" class="navOperate confirmInfoPermission" href="confirmInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核信息</a>
+                    </li>
+                    <li><a class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
+                    </li>
+                    <li><a class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    </li>
+                    <li><a class="navOperate regularPermission" href="regular.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 常规路线</a>
+                    </li>
+                    <li><a class="navOperate getLogPermission" href="log.html" style="display:none"><span class="glyphicon glyphicon-send"></span> Log</a>
+                    </li>
+
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="navLogin" style="display:none" href="login.html">登录</a>
+                    </li>
+                    <li><a id="navRegister" style="display:none" href="register.html">注册</a>
+                    </li>
+                    <li><a id="navNickname" style="display:none" href="javascript:void(0);">吴师傅</a>
+                    </li>
+                    <li><a id="navLogout" style="display:none" href="javascript:void(0);">退出</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">常规路线</h3>
+            </div>
+            <table class="table" id="table">
+                <thead>
+                    <tr>
+                        <th>编辑者</th>
+                        <th>提交时间</th>
+                        <th>消息类型</th>
+                        <th>角色</th>
+                        <th>称呼</th>
+                        <th>电话号码</th>
+                        <th>qq群</th>
+                        <th>其他信息</th>
+                        <th>常规线路</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+    <script>
+        (function(b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l;
+            b[l] || (b[l] =
+                function() {
+                    (b[l].q = b[l].q || []).push(arguments)
+                });
+            b[l].l = +new Date;
+            e = o.createElement(i);
+            r = o.getElementsByTagName(i)[0];
+            e.src = '//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X');
+        ga('send', 'pageview');
+    </script>
+
+    <!-- build:js scripts/jquery.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery.cookie/jquery.cookie.js"></script>
+    <!-- endbuild -->
+
+
+    <!-- build:js scripts/plugins_bootstrap.js -->
+    <script src="bower_components/sass-bootstrap/js/affix.js"></script>
+    <script src="bower_components/sass-bootstrap/js/alert.js"></script>
+    <script src="bower_components/sass-bootstrap/js/dropdown.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tooltip.js"></script>
+    <script src="bower_components/sass-bootstrap/js/modal.js"></script>
+    <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+    <script src="bower_components/sass-bootstrap/js/button.js"></script>
+    <script src="bower_components/sass-bootstrap/js/popover.js"></script>
+    <script src="bower_components/sass-bootstrap/js/carousel.js"></script>
+    <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
+    <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
+    <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+    <!-- endbuild -->
+
+
+    <!-- build:js({.tmp,app}) scripts/regular.js -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/login_handler.js"></script>
+    <script src="scripts/regular.js"></script>
+    <!-- endbuild -->
+</body>
+
+</html>

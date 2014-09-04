@@ -334,9 +334,28 @@ module.exports = function (grunt) {
        grunt.log.writeln('Starting tornado development server.');
        // stdio: 'inherit' let us see tornado output in grunt
        var PIPE = {stdio: 'inherit'};
+       
+       // spawn("scp -P 11000 -r",["~/Documents/codes/retrunk/trunkserver/admin_dist","root@115.29.8.74:/root/trunkserver"] ,PIPE)
        spawn('sh', ['./trunkserver/restart_admin.sh'], PIPE);
     });
 
+    grunt.registerTask('updateAdminFromServer', 'updateAdminFromServer', function() {
+        var spawn = require('child_process').spawn;
+       // grunt.log.writeln('Starting tornado development server.');
+       // stdio: 'inherit' let us see tornado output in grunt
+        var PIPE = {stdio: 'inherit'};
+       
+        spawn('sh', ['./trunkserver/updateAdminFromServer.sh'], PIPE);
+    });
+
+    grunt.registerTask('updateServerFromAdmin', 'updateServerFromAdmin', function() {
+        var spawn = require('child_process').spawn;
+       // grunt.log.writeln('Starting tornado development server.');
+       // stdio: 'inherit' let us see tornado output in grunt
+        var PIPE = {stdio: 'inherit'};
+       
+        spawn('sh', ['./trunkserver/updateServerFromAdmin.sh'], PIPE);
+    });
     grunt.registerTask('createDefaultTemplate', function () {
         grunt.file.write('.tmp/scripts/templates.js', 'this.JST = this.JST || {};');
     });
@@ -397,6 +416,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('build', [
+        // 'updateAdminFromServer',
         'htmlbuild',
         'clean:dist',
         'createDefaultTemplate',
@@ -410,7 +430,8 @@ module.exports = function (grunt) {
         // 'uglify',
         'copy',
         // 'rev',
-        'usemin'
+        'usemin',
+        'updateServerFromAdmin'
     ]);
 
     grunt.registerTask('default', [

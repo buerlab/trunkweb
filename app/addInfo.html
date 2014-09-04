@@ -50,7 +50,7 @@
 <body>
 
     <nav class="navbar navbar-inverse" role="navigation">
-        <div class="container">
+        <div>
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
@@ -62,24 +62,37 @@
                 <a class="navbar-brand" href="/">天天回程车管理端</a>
             </div>
 
+
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
                 <ul class="nav navbar-nav">
-                    <li><a id="navVerifyIDNum" class="navOperate verifyPermission" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                    <li class="dropdown navOperate verifyPermission" style="display:none">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      审核各种证 <span class="caret"></span>
+                    </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a id="navVerifyIDNum" class="" href="verifyIDNum.html"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                            </li>
+                            <li><a id="navVerifyDriverLicense" class="" href="verifyDriverLicense.html"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
+                            </li>
+                            <li><a id="navVerifyTrunkLicense" class="" href="verifyTrunkLicense.html"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
+                            </li>
+                        </ul>
                     </li>
-                    <li><a id="navVerifyDriverLicense" class="navOperate verifyPermission" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
-                    </li>
-                    <li><a id="navVerifyTrunkLicense" class="navOperate verifyPermission" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
-                    </li>
+
                     <li><a id="navFeedback" class="navOperate feedbackPermission" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
                     </li>
                     <li><a id="navAddInfo" class="navOperate addInfoPermission" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源</a>
                     </li>
                     <li><a id="navSeeInfo" class="navOperate confirmInfoPermission" href="confirmInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核信息</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
+                    <li><a class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    <li><a class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    </li>
+                    <li><a class="navOperate regularPermission" href="regular.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 常规路线</a>
+                    </li>
+                    <li><a class="navOperate getLogPermission" href="log.html" style="display:none"><span class="glyphicon glyphicon-send"></span> Log</a>
                     </li>
 
                 </ul>
@@ -104,13 +117,17 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">添加货源、车源信息
-            <button id="my_panel_fixed" class="pull-right">滚动</button>
+              <div class="btn-group">
+                  <button type="button" class="route-view-mode btn btn-primary" data-viewmode="temp">临时路线</button>
+                  <button type="button" class="route-view-mode btn btn-default" data-viewmode="regular">常规路线</button>
+              </div>
+              <button id="my_panel_fixed" class="pull-right">滚动</button>
           </h3>
 
                 </div>
 
 
-                <form class="form-horizontal" role="form">
+                <form id="tempForm" class="form-horizontal" role="form">
                     <textarea class="tmp_textarea col-sm-12" style="text-align:left;">这里的信息不会保存，用于暂时存放数据，方便录入。</textarea>
                     <div class="form-group">
                         <label for="from" class="col-sm-4 control-label">信息类别:</label>
@@ -260,6 +277,161 @@
                     </div>
                 </form>
 
+                <form id="regularForm" style="display:none" class="form-horizontal" role="form">
+                    <textarea class="tmp_textarea col-sm-12" style="text-align:left;">这里的信息不会保存，用于暂时存放数据，方便录入。</textarea>
+                    <div class="form-group">
+                        <label for="from" class="col-sm-4 control-label">信息类别:</label>
+                        <div class="col-sm-8">
+                            <label class="radio-inline">
+                                <input type="radio" name="userType" id="regularGoodsRadio" value="goods" checked>货源(求车)
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="userType" id="regularTrunkRadio" value="trunk">车源(求货）
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="from" class="col-sm-4 control-label">角色:</label>
+                        <div class="col-sm-8">
+                            <label class="radio-inline">
+                                <input type="radio" name="regularRole" class="regularRole" value="司机">司机
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularRole" class="regularRole" value="物流" checked>物流
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularRole" class="regularRole" value="货代">货代
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularRole" class="regularRole" value="货主">货主
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularRole" class="regularRole" value="车队">车队
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group ">
+                        <label for="regularNickname" class="col-sm-4 control-label"><span class="required">*</span>称呼:</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="regularNickname" placeholder="比如：吴师傅">
+                        </div>
+                        <div class="col-sm-2">
+                            <a href="javascript:void(0);" class="btn" id="regularNormalNickname">默认</a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regularPhoneNum" class="col-sm-4 control-label"><span class="required">*</span>电话号码:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="regularPhoneNum" placeholder="比如：15507507400">
+                        </div>
+                    </div>
+
+                    <div id="regularList">
+                        <div class="regular-item">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">常规路线
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-success regular-add">新增</button>
+                          <button type="button" class="btn btn-danger regular-delete">删除</button>
+                      </div>
+                      </h3>
+                                </div>
+                                <div class="form-group">
+                                    <label for="from" class="col-sm-4 control-label"><span class="required">*</span>出发地:</label>
+                                    <div class="col-sm-8 from-route-list">
+                                        <input type="text" class="form-control typeahead from-route-value" placeholder="比如：广东-广州-天河">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="to" class="col-sm-4 control-label"><span class="required">*</span>目的地:</label>
+                                    <div class="col-sm-8 to-route-list">
+                                        <input type="text" class="form-control typeahead to-route-value" placeholder="比如：广东-广州-天河">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">概率:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control route-probability" placeholder="0 到 1 之间，可不填">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group trunk-required">
+                        <label class="col-sm-4 control-label"><span class="required">*</span>车辆类型:</label>
+                        <div class="col-sm-8">
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="未知车型" checked>未知车型
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="厢车">厢车
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="平板车">平板车
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="高栏车">高栏车
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="低栏车">低栏车
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="面包车">面包车
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="regularTrunkType" class="regularTrunkType" value="集装车">集装车
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group trunk-required">
+                        <label for="regularTrunkLength" class="col-sm-4 control-label">车长:</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="regularTrunkLength" placeholder="比如：9.6">
+                        </div>
+                        <label class="col-sm-1 control-label">米</label>
+                    </div>
+                    <div class="form-group trunk-required">
+                        <label class="col-sm-4 control-label">载重:</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="regularTrunkLoad" placeholder="比如：5.4">
+                        </div>
+                        <label class="col-sm-1 control-label">吨</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regularComment" class="col-sm-4 control-label">备注:</label>
+                        <div class="col-sm-8">
+                            <textarea id="regularComment" style="
+                      width: 100%;
+                      height: 60px;
+                  "></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regularQQgroup" class="col-sm-4 control-label">QQ群:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="regularQQgroup" placeholder="比如：天天回程车讨论群">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regularQQgroupid" class="col-sm-4 control-label">QQ群id:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="regularQQgroupid" placeholder="比如：29272161252">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="op" class="col-sm-4 control-label">操作:</label>
+                        <div class="col-sm-8">
+                            <button type="button" class="btn btn-primary btn-lg regularConfirmBtn">确定提交</button>
+                            <button type="button" class="btn btn-danger btn-lg regularClearBtn">清空</button>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+
             </div>
         </div>
         <div class="col-sm-8 added-list">
@@ -364,6 +536,7 @@
     <script src="scripts/utils.js"></script>
     <script src="scripts/login_handler.js"></script>
     <script src="scripts/addInfo.js"></script>
+    <script src="scripts/addInfo_regular.js"></script>
     <!-- endbuild -->
 </body>
 

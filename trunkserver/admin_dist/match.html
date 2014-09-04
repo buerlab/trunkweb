@@ -32,7 +32,7 @@
 <body>
 
     <nav class="navbar navbar-inverse" role="navigation">
-        <div class="container">
+        <div>
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
@@ -44,24 +44,37 @@
                 <a class="navbar-brand" href="/">天天回程车管理端</a>
             </div>
 
+
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
                 <ul class="nav navbar-nav">
-                    <li><a id="navVerifyIDNum" class="navOperate verifyPermission" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                    <li class="dropdown navOperate verifyPermission" style="display:none">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      审核各种证 <span class="caret"></span>
+                    </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a id="navVerifyIDNum" class="" href="verifyIDNum.html"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                            </li>
+                            <li><a id="navVerifyDriverLicense" class="" href="verifyDriverLicense.html"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
+                            </li>
+                            <li><a id="navVerifyTrunkLicense" class="" href="verifyTrunkLicense.html"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
+                            </li>
+                        </ul>
                     </li>
-                    <li><a id="navVerifyDriverLicense" class="navOperate verifyPermission" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
-                    </li>
-                    <li><a id="navVerifyTrunkLicense" class="navOperate verifyPermission" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
-                    </li>
+
                     <li><a id="navFeedback" class="navOperate feedbackPermission" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
                     </li>
                     <li><a id="navAddInfo" class="navOperate addInfoPermission" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源</a>
                     </li>
                     <li><a id="navSeeInfo" class="navOperate confirmInfoPermission" href="confirmInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核信息</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
+                    <li><a class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    <li><a class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    </li>
+                    <li><a class="navOperate regularPermission" href="regular.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 常规路线</a>
+                    </li>
+                    <li><a class="navOperate getLogPermission" href="log.html" style="display:none"><span class="glyphicon glyphicon-send"></span> Log</a>
                     </li>
 
                 </ul>
@@ -98,17 +111,44 @@
                     </a>
 
                     <div class="data-list clearfix" data-route="广东-广州 至 广东-深圳">
-                        <div class="col-sm-3">
+                        <div class="col-sm-3 goods-list">
                             <h3>货源</h3>
                             <div class="goods-list">
-
-
+                                <!-- <div id="item_{id}" class="goods-item">
+                      <p><span class="sub-text">序号:</span><span class="value-text id-text">{num}</span></p>
+                      <p><span class="sub-text">id:</span><span class="value-text id-text">{id}</span></p>
+                      <p><span class="sub-text">称呼:</span><span class="value-text nickname-text">{nickname}</span></p>
+                      <p><span class="sub-text">电话号码:</span><span class="value-text phoneNum-text">{phoneNum}</span></p>
+                      <p><span class="sub-text">出发地:</span><span class="value-text from-text">{from}</span></p>
+                      <p><span class="sub-text">目的地:</span><span class="value-text to-text">{to}</span></p>
+                      <p><span class="sub-text">货物名称:</span><span class="value-text material-text">{material}</span></p>
+                      <p><span class="sub-text">重量:</span><span class="value-text weigth-text">{weigth}</span></p>
+                      <p><span class="sub-text">价格:</span><span class="value-text price-text">{price}</span></p>
+                      <p><span class="sub-text">发货时间:</span><span class="value-text billtime-text">{billtime}</span></p>
+                      <p><span class="sub-text">有效期:</span><span class="value-text validatetime-text">{validatetime}</span></p>
+                      <p><span class="sub-text">备注:</span><span class="value-text comment-text">{comment}</span></p>
+                      <p><span class="sub-text">发布时间:</span><span class="value-text sendtime-text">{sendtime}</span></p>
+                    </div> -->
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <h3>车源</h3>
                             <div class="trunk-list">
-
+                                <!-- <div id="item_{id}" class="trunk-item">
+                      <p><span class="sub-text">序号:</span><span class="value-text id-text">{num}</span></p>
+                      <p><span class="sub-text">id:</span><span class="value-text id-text">{id}</span></p>
+                      <p><span class="sub-text">称呼:</span><span class="value-text nickname-text">{nickname}</span></p>
+                      <p><span class="sub-text">电话号码:</span><span class="value-text phoneNum-text">{phoneNum}</span></p>
+                      <p><span class="sub-text">出发地:</span><span class="value-text from-text">{from}</span></p>
+                      <p><span class="sub-text">目的地:</span><span class="value-text to-text">{to}</span></p>
+                      <p><span class="sub-text">车辆类型:</span><span class="value-text trunkType-text">{trunkType}</span></p>
+                      <p><span class="sub-text">车长:</span><span class="value-text trunkLength-text">{trunkLength}</span></p>
+                      <p><span class="sub-text">载重:</span><span class="value-text trunkLoad-text">{trunkLoad}</span></p>
+                      <p><span class="sub-text">回程时间:</span><span class="value-text billtime-text">{billtime}</span></p>
+                      <p><span class="sub-text">有效期:</span><span class="value-text validatetime-text">{validatetime}</span></p>
+                      <p><span class="sub-text">备注:</span><span class="value-text comment-text">{comment}</span></p>
+                      <p><span class="sub-text">发布时间:</span><span class="value-text sendtime-text">{sendtime}</span></p>
+                    </div> -->
                             </div>
                         </div>
 

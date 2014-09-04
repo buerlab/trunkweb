@@ -1,4 +1,68 @@
+var G_data = G_data || {}
 
+G_data.currentAddInfoMode = "temp"; //默认是临时路线的添加模式
+G_data.adminUserId = "53e9cd5915a5e45c43813d1c";
+function initAddressSuggest(){
+    var myAddress = []
+    for(var i =0;i<ADDRESS.length;i++){
+
+        var provName= ADDRESS[i]["provName"];
+        if(provName){
+            myAddress.push(provName + "-不限-不限");
+        }
+        if(ADDRESS[i]["cities"]){
+            var cities = ADDRESS[i]["cities"];
+            for(var j =0;j<cities.length;j++){
+                var cityName = cities[j]["cityName"];
+                myAddress.push(provName + "-" + cityName + "-不限");
+                var regions = cities[j]["regions"];
+                for(var k =0;k<regions.length;k++){
+                    myAddress.push(provName + "-" + cityName + "-" + regions[k]["regionName"]);
+                }
+            }
+        }
+    }
+    G_data.myAddress = myAddress;
+}
+initAddressSuggest(); 
+
+var initTypeahead = function($this){
+    var region = new Bloodhound({
+                  datumTokenizer: Bloodhound.tokenizers.obj.chinese('value'),
+                  queryTokenizer: Bloodhound.tokenizers.chinese,
+                  // `states` is an array of state names defined in "The Basics"
+                  local: $.map(G_data.myAddress , function(myAddress) { return { value: myAddress }; }),
+                  limit:30
+                });
+     
+    // kicks off the loading/processing of `local` and `prefetch`
+    region.initialize();
+     
+     $this.typeahead({
+      hint: true,
+      highlight: true,
+      minLength: 1
+    },{
+      name: 'region',
+      displayKey: 'value',
+      // `ttAdapter` wraps the suggestion engine in an adapter that
+      // is compatible with the typeahead jQuery plugin
+      source: region.ttAdapter()
+    });
+   
+}
+initTypeahead($(".typeahead"));
+
+
+function isPhoneData(str){
+    var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
+    var ret = pattern.exec(str);
+    if(ret){
+        return ret[0];
+    }else{
+        return false;
+    }
+}
 $(function() {
     var $goodsRadio = $("#goodsRadio"),
         $trunkRadio= $("#trunkRadio"),
@@ -20,19 +84,11 @@ $(function() {
         $clearBtn = $(".clearBtn"),
         $timeType = $("#timeType");
 
-    var adminUserId = "53e9cd5915a5e45c43813d1c";
+    
     var numPerPage = 10;
     var modifyingId = null;
 
-    function isPhoneData(str){
-        var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
-        var ret = pattern.exec(str);
-        if(ret){
-            return ret[0];
-        }else{
-            return false;
-        }
-    }
+
     var safeRender =function(key){
         if (key){
             return key;
@@ -75,56 +131,9 @@ var Datepattern=function(d,fmt) {
     return fmt;           
 }
 
-function initAddressSuggest(){
-    var myAddress = []
-for(var i =0;i<ADDRESS.length;i++){
-
-    var provName= ADDRESS[i]["provName"];
-    if(provName){
-        myAddress.push(provName + "-不限-不限");
-    }
-    if(ADDRESS[i]["cities"]){
-        var cities = ADDRESS[i]["cities"];
-        for(var j =0;j<cities.length;j++){
-            var cityName = cities[j]["cityName"];
-            myAddress.push(provName + "-" + cityName + "-不限");
-            var regions = cities[j]["regions"];
-            for(var k =0;k<regions.length;k++){
-                myAddress.push(provName + "-" + cityName + "-" + regions[k]["regionName"]);
-            }
-        }
-    }
-}
 
 
-var region = new Bloodhound({
-              datumTokenizer: Bloodhound.tokenizers.obj.chinese('value'),
-              queryTokenizer: Bloodhound.tokenizers.chinese,
-              // `states` is an array of state names defined in "The Basics"
-              local: $.map(myAddress, function(myAddress) { return { value: myAddress }; }),
-              limit:30
-            });
- 
-// kicks off the loading/processing of `local` and `prefetch`
-region.initialize();
- 
-$('.typeahead').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1
-},
-
-{
-  name: 'region',
-  displayKey: 'value',
-  // `ttAdapter` wraps the suggestion engine in an adapter that
-  // is compatible with the typeahead jQuery plugin
-  source: region.ttAdapter()
-});
-}
-
-    function init(){
-        initAddressSuggest();   
+    function init(){  
         // var time1 = Datepattern(new Date(),"yyyy-MM-dd HH:mm:ss");   
         // $time.val(time1);
         // $validateTime.val(2);
@@ -166,7 +175,7 @@ $('.typeahead').typeahead({
             return null;
         }else{
             if(!isPhoneData($phoneNum.val())){
-                showTips("电话号码格式");
+                showTips("电话号码格式不对");
                 return null
             }
         }
@@ -203,7 +212,7 @@ $('.typeahead').typeahead({
         }
 
         if(+$trunkLength.val() +"" == "NaN"){
-            showTips("货车必须是数字");
+            showTips("货车长度必须是数字");
             return null;
         }
 
@@ -264,8 +273,8 @@ $('.typeahead').typeahead({
         data.phoneNum = $phoneNum.val();
         data.comment = $comment.val();
         data.senderName = $nickname.val();
-        data.sender = adminUserId;
-        data.userId = adminUserId;
+        data.sender = G_data.adminUserId;
+        data.userId = G_data.adminUserId;
         data.qqgroup = $("#qqgroup").val();
         data.qqgroupid = $("#qqgroupid").val();
         data.rawText = $("#rawText").val();
@@ -332,7 +341,7 @@ $('.typeahead').typeahead({
     // } 
 
     function sendBill(){
-        var url = "http://115.29.8.74:9289/message/send";
+        var url = "http://localhost:9289/message/send";
                    
         var param = getReqParams();
         if(param==null){
@@ -366,7 +375,7 @@ $('.typeahead').typeahead({
         });
 
         if(modifyingId){
-            var urlModify = "http://115.29.8.74:9289/message/modify";
+            var urlModify = "http://localhost:9289/message/modify";
 
             var jqxhr = $.ajax({
                 url: urlModify,
@@ -398,7 +407,7 @@ $('.typeahead').typeahead({
     }
 
     function getToAddMessage(type){
-        var url = "http://115.29.8.74:9289/message/get";
+        var url = "http://localhost:9289/message/get";
         
 
         var jqxhr = $.ajax({
@@ -533,7 +542,7 @@ $('.typeahead').typeahead({
     }
 
     var getRefuseMessage= function(){
-        var url = "http://115.29.8.74:9289/message/getRefuse";
+        var url = "http://localhost:9289/message/getRefuse";
 
         var jqxhr = $.ajax({
             url: url,
@@ -590,6 +599,18 @@ $('.typeahead').typeahead({
             if($nickname.val()=="货源"){
                 $nickname.val("车源");
             }
+        });
+
+        $(".route-view-mode").click(function(){
+            $(".route-view-mode").removeClass("btn-primary");
+            $(".route-view-mode").addClass("btn-default");
+            $(this).removeClass("btn-default");
+            $(this).addClass("btn-primary");
+
+            G_data.currentAddInfoMode = $(this).data("viewmode");
+
+            $(".form-horizontal").hide();
+            $("#"+G_data.currentAddInfoMode + "Form").show();
         });
 
         $("#updateTime").click(function(){
@@ -684,7 +705,7 @@ $('.typeahead').typeahead({
             var $this = $(this),
                 id = $this.parents().data("id");
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9289/message/delete",
+                url: "http://localhost:9289/message/delete",
                 data: {
                     "id": id,
                 },
@@ -714,7 +735,7 @@ $('.typeahead').typeahead({
                 id = $this.parents().data("id");
 
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9289/message/done",
+                url: "http://localhost:9289/message/done",
                 data: {
                     "id": id,
                 },
@@ -738,6 +759,9 @@ $('.typeahead').typeahead({
         });
 
         $("#toAddMessageBody").delegate(".smart_add","click",function(){
+            if (G_data.currentAddInfoMode !="temp"){
+                return;
+            }
             modifyingId = null;
             var $this = $(this),
                 id = $this.parents().data("id");
@@ -753,7 +777,7 @@ $('.typeahead').typeahead({
 
             // $time.val($tds.eq(2).html());
 
-            var a = $tds.eq(5).html().split("<br>").join();
+            var a = $tds.eq(5).html().split("<br>").join("");
             function isImportantData(str){
                 var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
                 var ret = pattern.exec(str);
@@ -782,37 +806,20 @@ $('.typeahead').typeahead({
 
             var phone = isImportantData(a);
             if(phone){
-                a = a.split(phone).join().trim();
+                a = a.split(phone).join("").trim();
                 a = a.replace(/,+/g,",").replace(/，+/,"，");
 
                 if(a[a.length-1] == "，" || a[a.length-1] == ","){
                     a = a.substring(a,a.length-1);
                 }
+
+                a = a.replace(/<.*>/g,""); //去掉Html
+                a = a.replace(/货讯：/g,"").replace(/车讯：/g,"");   //去掉货讯车讯
                 $comment.val(a);
             }else{
                 $comment.val(a);
             }
         });
-
-  // var $goodsRadio = $("#goodsRadio"),
-  //       $trunkRadio= $("#trunkRadio"),
-  //       $nickname = $("#nickname"),
-  //       $phoneNum = $("#phoneNum"),
-  //       $goodsName = $("#goodsName"),
-  //       $goodsWeight = $("#goodsWeight"),
-  //       $goodsPrice = $("#goodsPrice"),
-  //       $trunkType = $(".trunkType"),
-  //       $licensePlate = $("#licensePlate"),
-  //       $trunkLength = $("#trunkLength"),
-  //       $trunkLoad = $("#trunkLoad"),
-  //       $from = $("#from"),
-  //       $to = $("#to"),
-  //       $time = $("#time"),
-  //       $validateTime = $("#validateTime"),
-  //       $comment = $("#comment"),
-  //       $confirmBtn = $(".confirmBtn"),
-  //       $clearBtn = $(".clearBtn"),
-  //       $timeType = $("#timeType");
 
         $("#refuseMessageContainer").delegate(".modify","click",function(){
             $this = $(this);
@@ -855,12 +862,13 @@ $('.typeahead').typeahead({
 
         });
 
+
         $("#refuseMessageContainer").delegate(".giveup","click",function(){
             var $this = $(this),
                 id = $this.parents().data("id");
 
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9289/message/giveup",
+                url: "http://localhost:9289/message/giveup",
                 data: {
                     "id": id,
                 },

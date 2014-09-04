@@ -6,6 +6,7 @@ from tornado.options import  define, options
 import signal
 
 from handler.billhandler import *
+from handler.userhandler import *
 from dataprotocol import *
 from dbservice import *
 from mylog import mylog, getLogText
@@ -16,6 +17,10 @@ from jobs import *
 from models import connect
 import time
 from  jpush.RegCodeService import RegCode
+from  jpush.YunPianRegCodeService import YunPianRegCode,YunPianMsgAfterCalled
+from appconf import AppConf, printConf
+from billmatchcontroller import BillMatchController
+from handler.commonhandler import RegularHandler, RemoveRegularHandler, AddRouteHandler, GetRegularHandler
 
 try:
     from PIL import Image
@@ -32,6 +37,21 @@ define("port", default=9288, type=int)
 define("billDueMins", default=1, type=int)
 define("historyReturnPieces", default=5, type=int)
 
+define("locationValidDay", default=10, type=int)
+define("locationArchDays", default=10, type=int)
+define("locationArchIntervalHours", default=2, type=int)
+define("locationCacheHours", default=10, type=int)
+define("locationInterval", default=4, type=int)
+
+#推荐单子每次请求返回的最大数量
+define("recomendBillReturnOnce", default=20, type=int)
+
+# define("inviteOnceBonus", default=10, type=int)
+
+
+#每次数据库查找返回的文档最大数量
+define("findMaxReturn", default=1000, type=int)
+
 commentDict = {
     "userType": "driver/owner",
     "starNum":0, #0,1,2,3
@@ -43,6 +63,7 @@ commentDict = {
     "billId":"ObjectId()"
 }
 
+
 class IndexHandler(BaseHandler):
     def get(self):
         self.render("./dist/index.html")
@@ -52,6 +73,7 @@ class IndexHandler(BaseHandler):
         service = self.getDbService()
         mylog.getlog().info(getLogText(service))
         self.write("you make it")
+
 
 class LoginHandler(BaseHandler):
     @addAllowOriginHeader
@@ -66,10 +88,10 @@ class LoginHandler(BaseHandler):
         #valid cookie or username and password can login
 
         if userinput and psw:
-            print "get input:", userinput, "psw:", psw
+            # print "get input:", userinput, "psw:", psw
             userid = service.confirmUser(userinput, encryptPassword(psw))
-            print "login userid", userid
-            print 'self.get_cookie("username")', self.get_cookie("username")
+            # print "login userid", userid
+            # print 'self.get_cookie("username")', self.get_cookie("username")
 
             if userid:
                 userData = service.getUserBaseData(userid)
@@ -84,10 +106,10 @@ class LoginHandler(BaseHandler):
                 self.set_secure_cookie("userid", str(userid))
                 self.set_secure_cookie("mark", getMark(userid))
 
-
-                print str(userid)
-                print getMark(userid)
-                self.write(DataProtocol.getSuccessJson(userData,"json"))
+                # print str(userid)
+                # print getMark(userid)
+                dataToClient = {"user":userData, "control":{"serverTimeMills":int(time.time())*1000}}
+                self.write(DataProtocol.getSuccessJson(dataToClient,"json"))
             else:
                 self.write(DataProtocol.getJson(DataProtocol.LOGIN_FAIL,"手机号码或者密码错误，登录失败"))
         else:
@@ -98,11 +120,12 @@ class LoginHandler(BaseHandler):
 class QuickLoginHanlder(BaseHandler):
     @auth
     def post(self):
-        userId = self.getCurrentUser()
+        userId = self.getCurrUserId()
         service = self.getDbService()
         userData = service.getUserBaseData(userId)
+        dataToClient = {"user":userData, "control":{"serverTimeMills":int(time.time())*1000}}
         if userData:
-            self.write(DataProtocol.getSuccessJson(userData, "json"))
+            self.write(DataProtocol.getSuccessJson(dataToClient, "json"))
         else:
             self.write(DataProtocol.getJson(DataProtocol.AUTH_ERROR))
 
@@ -138,9 +161,9 @@ class RegisterHandler(BaseHandler):
             # self.set_secure_cookie("mark", getmark(user))
 
             if not service.hasUser(userinput):
-                print "register new user:", userinput
+                # print "register new user:", userinput
                 userid = service.addUser(username, phoneNum, encryptPassword(psw))
-                print userid
+                # print userid
                 userData = service.getUserBaseData(userid)
 
                 #注册完马上给个登录态
@@ -150,20 +173,19 @@ class RegisterHandler(BaseHandler):
             else:
                 self.write(DataProtocol.getJson(DataProtocol.USER_EXISTED_ERROR,"用户已经存在"))
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"missing username or password"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
 
 class UserHanlder(BaseHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
     @auth
     def put(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         toSave = dict([(key, self.get_argument(key, None)) for key in userDict.iterkeys() if self.get_argument(key, None)])
-        mylog.getlog().info(getLogText( "save user data:", toSave))
+        # mylog.getlog().info(getLogText( "save user data:", toSave))
         service = self.getDbService()
         if service:
             if toSave:
-                print "success"
                 service.updateUser(userid, **toSave)
                 self.write(DataProtocol.getSuccessJson())
             else:
@@ -173,11 +195,10 @@ class UserHanlder(BaseHandler):
 
     @auth
     def get(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         service = self.getDbService()
         if userid and service:
             userdata = service.getUserBaseData(userid)
-
             self.write(DataProtocol.getSuccessJson(userdata,"json"))
         else:
             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
@@ -188,7 +209,7 @@ class UserTrunkHandler(BaseHandler):
 
     @auth
     def post(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         print "userid=", userid
 
         trunk = dict([(key, self.get_argument(key, None)) for key in trunkDict.iterkeys() if self.get_argument(key, None)])
@@ -213,11 +234,11 @@ class UserTrunkHandler(BaseHandler):
 
                 print "trunk=",trunk
 
-                print "service.getUserBaseData(userid)"
-                print service.getUserBaseData(userid)
+                # print "service.getUserBaseData(userid)"
+                service.getUserBaseData(userid)
 
-                print "service.addUserATrunk(userid, **trunk)"
-                print service.addUserATrunk(userid, **trunk)
+                # print "service.addUserATrunk(userid, **trunk)"
+                service.addUserATrunk(userid, **trunk)
 
             else:
                 self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR, "相同车牌的货车不能重复添加"))
@@ -227,9 +248,9 @@ class UserTrunkHandler(BaseHandler):
 
     @auth
     def put(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         trunk = dict([(key, self.get_argument(key, None)) for key in trunkDict.iterkeys() if self.get_argument(key, None)])
-        print "trunk=",trunk
+        # print "trunk=",trunk
 
         service = self.getDbService()
         if trunk:
@@ -255,7 +276,7 @@ class DeleteUserTrunkHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
     @auth
     def post(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         licensePlate = self.get_argument("licensePlate")
         service = self.getDbService()
 
@@ -280,21 +301,24 @@ class UseTrunkHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
     @auth
     def post(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         licensePlate = self.get_argument("licensePlate")
         service = self.getDbService()
 
         if userid and licensePlate:
 
             if service.getUserTrunk(userid, licensePlate) is None:
+                # print "service.getUserTrunk(userid, licensePlate) is None"
                 self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
 
             ret = service.setUsedTrunk(userid,licensePlate)
             if ret:
                 self.write(DataProtocol.getSuccessJson(service.getUserTrunks(userid),"json"))
             else:
+                # print "ret = null"
                 self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
         else:
+            # print "ARGUMENT_ERROR"
             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
 class UploadTrunkPicHandler(BaseHandler):
@@ -341,8 +365,10 @@ class CommentHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
 
     @auth
+    @coroutineDebug
+    @coroutine
     def get(self):
-        userid = self.getCurrentUser()
+        userid = self.getCurrUserId()
         num = self.get_argument("num", 0)
         count = self.get_argument("count", -1)
         userType = self.get_argument("userType",None)
@@ -352,14 +378,20 @@ class CommentHandler(BaseHandler):
             commentIds = service.getUserComments(userid,userType, int(num), int(count))
             commentDatas = [service.getCommentById(commentIds[i]) for i in xrange(len(commentIds))] if commentIds else []
 
-            print commentIds
-            print commentDatas
+            # print commentIds
+            # print commentDatas
             for item in commentDatas:
                 if "fromUserId" in item:
-                    item["nickBarData"] = service.getNickBarData(item["fromUserId"])
+                    print 'eeeeeeeeeeeeeee item["fromUserId"]',item["fromUserId"]
+
+                    user = yield User.get(item["fromUserId"],userType)
+                    print "user,",user
+                    if user:
+                        item["nickBarData"] = user.to_user_base_data()
+
             self.write(DataProtocol.getSuccessJson(commentDatas,"json"))
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"userid is invalid"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
     @auth
     def delete(self):
@@ -370,9 +402,9 @@ class CommentHandler(BaseHandler):
             if ret:
                 self.write(DataProtocol.getSuccessJson())
             else:
-                self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"fail to delete a comment"))
+                self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"删除评论失败，请稍后再试"))
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"userid is invalid"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
     @auth
     def put(self):
@@ -381,23 +413,25 @@ class CommentHandler(BaseHandler):
         text = self.get_argument("text",None)
         service = self.getDbService()
         if not commentId or not starNum or not text:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"arg is invalid"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             return
 
         starNum = int(starNum)
         text = str(text)
         if not commentDict:
             trunkserverLog("has not the commentDict")
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"has not the commentDict"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             return
 
         ret = service.updateComment(commentId,starNum,text)
         if ret:
             self.write(DataProtocol.getSuccessJson())
         else:
-            self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"fail to update a comment"))
+            self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
 
     @auth
+    @coroutineDebug
+    @coroutine
     def post(self):
         if commentDict:
             params = {}
@@ -407,22 +441,39 @@ class CommentHandler(BaseHandler):
             trunkserverLog("comment：", params)
             params["commentTime"] = str(time.time())
 
-            if "userType" in params :
-                if params["userType"] == "driver":
-                    params["userType"] = "owner"
-                elif params["userType"] == "owner":
-                    params["userType"] = "driver"
+            if "billId" in params:
+                print params["billId"]
+                bill = yield HistoryBill.get(params["billId"])
+                print "bill",bill.to_client()
+                if bill.hasCommented:
+                    self.write(DataProtocol.getJson(DataProtocol.ALREADY_COMMENTED,"已经评论过了"))
+                    return
 
-                ret = service.addComment(**params)
-                if ret:
-                    self.write(DataProtocol.getSuccessJson())
+                if params["fromUserId"] == params["toUserId"]:
+                    self.write(DataProtocol.getJson(DataProtocol.CANNOT_SELF_COMMENT,"不能给自己评论"))
+                    return
+
+                if "userType" in params:
+                    if params["userType"] == "driver":
+                        params["userType"] = "owner"
+                    elif params["userType"] == "owner":
+                        params["userType"] = "driver"
+
+
+                    ret = service.addComment(**params)
+                    if ret:
+                        bill.hasCommented = True
+                        yield bill.save()
+                        self.write(DataProtocol.getSuccessJson())
+                    else:
+                        self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
                 else:
-                    self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"fail to add a comment"))
+                    self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             else:
-                self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"参数错误"))
+                self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
         else:
             trunkserverLog("has not the commentDict")
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"has not the commentDict"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
     def options(self):
         self.add_header("Access-Control-Allow-Methods","POST, GET, OPTIONS,DELETE,HEAD,PATCH,PUT")
@@ -439,14 +490,15 @@ class CommentTextHandler(BaseHandler):
                 # print commentText
                 self.write(DataProtocol.getSuccessJson(commentText[userType],"json"))
             except Exception, e:
-                self.write(DataProtocol.getJson(DataProtocol.FILE_ERROR,"config read error"))
+                self.write(DataProtocol.getJson(DataProtocol.FILE_ERROR))
                 trunkserverLog(DataProtocol.FILE_ERROR,"config read error",e)
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"userType must be 'owner' or 'driver'"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
 #######################Comment Hanlder end #######################
 
 class LocationHandler(BaseHandler):
+    @auth
     def post(self):
         latitude = self.get_argument("latitude", None)
         longitude = self.get_argument("longitude", None)
@@ -460,7 +512,7 @@ class LocationHandler(BaseHandler):
             service.addLocation(userId,latitude,longitude,prov,city,district,str(time.time()))
             self.write(DataProtocol.getSuccessJson())
         else:
-           self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"param error"))
+           self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
            trunkserverLog("LocationHandler param error")
 
     # def get(self):
@@ -476,24 +528,21 @@ class LocationHandler(BaseHandler):
     #        self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"param error"))
     #        trunkserverLog("LocationHandler param error")
 
-
-#######################Page Hanlder#######################
-class LoginPageHandler(BaseHandler):
+    @auth
     def get(self):
-        userid = self.getCurrentUser()
-        mark = self.getMark()
-        customType = self.getCustomType()
+        myUserId = self.get_argument("userId", None)
+        getUserId = self.get_argument("getUserId",None)
 
-        if userid and mark and checkMark(userid, mark,customType):
-            self.redirect("/main.html")
+        if getUserId:
+            service =self.getDbService()
+            ret = service.getLastLocation(getUserId)
+            if ret:
+                self.write(DataProtocol.getSuccessJson(ret,"json"))
+            else:
+                self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"找不到该用户的地理位置"))
         else:
-           self.render("./dist/login.html")
-        # self.render("./dist/login.html")
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
-class MainPageHandler(BaseHandler):
-    @authPage
-    def get(self):
-        self.render("./dist/main.html")
 
 #######################Page Hanlder END #######################
 
@@ -509,14 +558,32 @@ class TestHandler(BaseHandler):
 
 ####################### 验证码相关 BEGIN #######################
 
+# class RegCodeHandler(BaseHandler):
+#     def get(self):
+#         phonenum = self.get_argument("phonenum",None)
+#         #TODO 验证手机格式
+#         if not phonenum is None:
+#             #发送短信
+#             regcodeObject = RegCode()
+#             #TODO 这里可能会出错，当短信不够或者服务出错的情况，需要补充逻辑
+#             regcodeStr = regcodeObject.sendRegCode(phonenum)
+#             print regcodeStr
+
+#             service = self.getDbService()
+#             service.addRegCode(phonenum,regcodeStr)
+#             self.write(DataProtocol.getSuccessJson())
+#         else:
+#             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+#             trunkserverLog("RegCodeHandler param error")
+
 class RegCodeHandler(BaseHandler):
     def get(self):
         phonenum = self.get_argument("phonenum",None)
         #TODO 验证手机格式
         if not phonenum is None:
             #发送短信
-            regcodeObject = RegCode()
-            #TODO 这里可能会出错，但短信不够或者服务出错的情况，需要补充逻辑
+            regcodeObject = YunPianRegCode()
+            #TODO 这里可能会出错，当短信不够或者服务出错的情况，需要补充逻辑
             regcodeStr = regcodeObject.sendRegCode(phonenum)
             print regcodeStr
 
@@ -524,8 +591,45 @@ class RegCodeHandler(BaseHandler):
             service.addRegCode(phonenum,regcodeStr)
             self.write(DataProtocol.getSuccessJson())
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"param error"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             trunkserverLog("RegCodeHandler param error")
+
+class RegCodeAfterCalledHandler(BaseHandler):
+    def get(self):
+        phonenum = self.get_argument("phonenum",None)
+        userType = self.get_argument("userType",None)
+        nickname2 = self.get_argument("nickname",None)
+        #TODO 验证手机格式
+        if not phonenum is None and not userType is None:
+            #发送短信
+            regcodeObject = YunPianMsgAfterCalled()
+            url = "http://t.cn/RhP5DqN"  #http://115.29.8.74/app/trunkdriver.apk
+
+            #司机打给货主，让货主安装个货主版的
+            if userType == "driver":
+                url = '轻松找到回程货！http://t.cn/RhPtZLt' #http://115.29.8.74/app/trunkowner.apk
+            else:
+                url = "出一趟车，赚两次钱！http://t.cn/RhP5DqN"  #http://115.29.8.74/app/trunkdriver.apk
+
+            # print nickname2
+            # print nickname2.encode("utf-8")
+            # print unquote(nickname2.encode("utf-8"))
+
+            # print "_____"
+            # if nickname is None:
+            nickname = "朋友"
+            # print type(nickname)
+            # else:
+            #     nickname = unquote(nickname.encode("utf-8"))
+
+            print "nickname after encoding", nickname
+            regcodeObject.send(phonenum,url,nickname)
+            self.write(DataProtocol.getSuccessJson())
+        else:
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            trunkserverLog("RegCodeHandler param error")
+
+
 
 class CheckCodeHandler(BaseHandler):
     def get(self):
@@ -534,14 +638,13 @@ class CheckCodeHandler(BaseHandler):
 
         service = self.getDbService()
         if not phonenum is None and not regcode is None:
-
             if service.hasUser(phonenum):
                 self.write(DataProtocol.getJson(DataProtocol.USER_EXISTED_ERROR,"用户已经存在"))
             else:
                 ret = service.checkCode(phonenum,regcode)
                 self.write(DataProtocol.getSuccessJson({"ret":ret},"json"))
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"param error"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             trunkserverLog("CheckCodeHandler param error")
 
 ####################### 验证码相关 END #######################
@@ -549,22 +652,30 @@ class CheckCodeHandler(BaseHandler):
 class UserCompleteDataHanlder(BaseHandler):
     @auth
     def get(self):
-        userid =self.getCurrentUser()
+        userid =self.getCurrUserId()
         getType = self.get_argument("getType",None)
+        getUserId = self.get_argument("getUserId", None)
 
         service = self.getDbService()
-        if userid and getType:
-            data = service.getUserCompleteData(userid,getType)
+        if getUserId and getType:
+
+            data = service.getUserCompleteData(getUserId,getType)
             if data is None:
                  self.write(DataProtocol.getJson(DataProtocol.DB_ERROR,"数据验证失败"))
             else:
                 self.write(DataProtocol.getSuccessJson(data,"json"))
         else:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"userid is none or getType is none"))
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             trunkserverLog("UserCompleteDataHanlder param error")
 
+class AppDownloadHandler(BaseHandler):
+        def get(self):
+            self.set_header("Content-Type","application/octet-stream")
+            with open("dist/app/trunkeveryday.apk", "r") as f:
+                self.write(f.read())
+
 settings = {
-    "debug":True,
+    # "debug":True,
     "login_url":"/login",
     "cookie_secret":"61oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo="
 }
@@ -572,12 +683,12 @@ settings = {
 static_path = os.path.join(os.path.dirname(__file__), "dist")
 
 application = tornado.web.Application([
-    (r"/api/admin/qlogin", QuickLoginHanlder),
+    (r"/api/admin/qlogin", UserQuickLoginHandler),
     (r'/', IndexHandler),
-    (r"/api/admin/login", LoginHandler),
+    (r"/api/admin/login", UserLoginHandler),
+    (r"/api/admin/logout", UserLogoutHandler),
     (r"/api/admin/register", RegisterHandler),
     (r"/api/admin/logout", LogoutHandler),
-    (r"/api/bill", BillHandler),
     (r"/api/bill/get", GetUserBillsHandler),
     (r"/api/bill/send", SendBillHandler),
     (r"/api/bill/delete", DeleteBillHandler),
@@ -591,20 +702,30 @@ application = tornado.web.Application([
     (r"/api/bill/history", GetHistoryBillHandler),
     (r"/api/bill/pick", PickBillHandler),
     (r"/api/bill/confirm", ConfirmBillReqHandler),
+    (r"/api/bill/finish_hbill", FinishHistoryBillHandler),
+    (r"/api/bill/confirm_hbill", ConfirmHistoryBillHandler),
+    (r"/api/bill/get_one", GetBillHandler),
     (r"/api/comment", CommentHandler),
     (r"/api/comment/text", CommentTextHandler),
     (r"/api/user", UserHanlder),
+    (r"/api/user/update", UpdateUserHandler),
+    (r"/api/user/setting", UserSettingHandler),
     (r"/api/user/getCompleteData", UserCompleteDataHanlder),
     (r"/api/user/trunk", UserTrunkHandler),
     (r"/api/user/trunk/delete", DeleteUserTrunkHandler),
     (r"/api/user/trunk/use", UseTrunkHandler),
     (r"/api/user/trunk/uploadPic", UploadTrunkPicHandler),
-    (r"/api/location", LocationHandler),
+    (r"/api/location", UserLocationHandler),
+    (r"/api/location/get", GetUserLocationHandler),
     (r"/api/regcode",RegCodeHandler),
     (r"/api/regcode/check",CheckCodeHandler),
-    (r'/login.html', LoginPageHandler),
-    (r'/main.html', MainPageHandler),
-    (r'/test', TestHandler),
+    (r"/api/get_match",getMatchBillHandler),
+    (r"/api/regcode/aftercalled",RegCodeAfterCalledHandler),
+    (r"/api/regular/get", GetRegularHandler),
+    (r"/api/regular/add", RegularHandler),
+    (r"/api/regular/add_route", AddRouteHandler),
+    (r"/api/regular/remove", RemoveRegularHandler),
+
     (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
 ], **settings)
 
@@ -632,6 +753,17 @@ def writePid():
     fileHandle.write(str(os.getpid()))
     fileHandle.close()
 
+@coroutineDebug
+@coroutine
+def initAppConf():
+    conf = yield Config.objects().one()
+    if not conf:
+        conf = Config()
+        conf.currUse = True
+        yield conf.save()
+
+    AppConf.conf = conf
+
 writePid()
 
 if __name__ == "__main__":
@@ -641,10 +773,20 @@ if __name__ == "__main__":
     server = HTTPServer(application, xheaders=True)
     server.listen(options.port)
 
-    minJobs = tornado.ioloop.PeriodicCallback(jobsEveryMin, 10*1000)
-    minJobs.start()
+    jobsManager = JobsManager()
+    #初始化billmatchmap，建立一个单子匹配的map
+    BillMatchController().initFromDB()
 
-    # job = tornado.ioloop.PeriodicCallback(jobsEvery5Mins, 5*60*1000)
+    msJobs = tornado.ioloop.PeriodicCallback(jobsManager.update, 100)
+    msJobs.start()
+
+    # minJobs = tornado.ioloop.PeriodicCallback(jobsEveryMin, 10*1000)
+    # minJobs.start()
+
+    min5Jobs = tornado.ioloop.PeriodicCallback(jobsEvery5Mins, 5*60*1000)
+    min5Jobs.start()
+
+    # job = tornado.ioloop.PeriodicCallback(jobsEvery5Hours, 5*60*60*1000)
     # job.start()
 
     # signal.signal(signal.SIGINT, gracefullyShutDown)

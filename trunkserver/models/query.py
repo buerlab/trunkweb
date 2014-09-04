@@ -1,8 +1,108 @@
-# -*- coding: utf-8 -*-f
+#encoding=utf-8
+
+__author__ = 'zhongqiling'
+
+from tornado.gen import coroutine, Return
 import copy, operator, itertools, re, pprint
 import pymongo
 from collections import defaultdict
-from tornado.gen import coroutine, Return
+
+def _toQ(term, **kwargs):
+    return dict([(k, {term: v}) for k,v in kwargs])
+
+def qOr(**kwargs):
+    return {"$or":[{k:v} for k,v in kwargs.items()]}
+
+def qN(**kwargs):
+    return _toQ("$not", **kwargs)
+
+def qSize(**kwargs):
+    return _toQ("$size", **kwargs)
+
+def qLt(**kwargs):
+    return _toQ("$lt", **kwargs)
+
+def qIn(**kwargs):
+    return _toQ("$in", **kwargs)
+
+
+class QueryTool(object):
+
+    def __init__(self, doc, collection):
+        self._doc = doc
+        self._collection = collection
+        self._cursor = None
+        self._query = {}
+
+    def __call__(self, queryDict={}):
+        queryDb = self._doc.query_dict_to_db(queryDict)
+        self._cursor = self._collection.find(queryDb)
+        self._query = queryDb
+        return self
+
+    @coroutine
+    def one(self):
+        resp = yield self._collection.find_one(self._query)
+        resp = self._doc.from_db(resp) if resp else None
+        raise Return(resp)
+
+    def limit(self, num):
+        self._cursor.limit(num)
+        return self
+
+    def skip(self, num):
+        self._cursor.skip(num)
+        return self
+
+    def sort(self, sortList):
+        _sort = []
+        for item in sortList:
+            docKey = self._doc.key_to_db(item[0])
+            if not docKey:
+                raise Exception("sort list key is invalid!")
+            _sort.append((docKey, item[1]))
+        self._cursor.sort(_sort)
+        return self
+
+    @coroutine
+    def count(self):
+        count = yield self._cursor.count()
+        raise Return(count)
+
+    @coroutine
+    def to_list(self, num):
+        resp = yield self._cursor.to_list(num)
+        result = [self._doc.from_db(item) for item in resp] if resp else []
+        raise Return(result)
+
+    @coroutine
+    def update(self, **kwargs):
+        if kwargs:
+            updateDict = self._doc.query_dict_to_db(kwargs)
+            # toSetDict = dict([("$set", {k:v}) for k,v in updateDict.iteritems()])
+            toSetDict = {"$set":updateDict}
+            result = yield self._doc.get_collection().update(self._query, toSetDict)
+            raise Return(result)
+        else:
+            raise Return(None)
+
+    @coroutine
+    def remove(self):
+        result = yield self._doc.get_collection().remove(self._query)
+        raise Return(result)
+
+class QueryDesc(object):
+
+    def __get__(self, instance, owner):
+        if instance is not None:
+            return self
+
+        return QueryTool(owner, owner.get_collection())
+
+
+
+
+
 
 # Delete rules
 DO_NOTHING = 0

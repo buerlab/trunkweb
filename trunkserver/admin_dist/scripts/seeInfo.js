@@ -78,6 +78,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -89,14 +92,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},
@@ -314,7 +313,7 @@ $(function(){
     }
 
     var getSummaryData= function(){
-        var url = "http://115.29.8.74:9289/stat/summary";
+        var url = "http://localhost:9289/stat/summary";
         
         var data = getSummaryParam();
 
@@ -491,6 +490,9 @@ $(function(){
 $(function(){
     var editorStatArray=[];
 
+    if(G_data && G_data.admin && G_data.admin.username){
+        $("#editorStat-input-editor").val(G_data.admin.username);
+    }
     var bindEvent = function(){
 
         $(".editorStat-view-mode").click(function(){
@@ -558,7 +560,11 @@ $(function(){
                       '<td>' + "汇总" + '</td>' + 
                       '<td>' + v.toAddMessageIgnoreCount + '</td>' + 
                       '<td>' + v.toAddMessageDoneCount + '</td>' +
-                      '<td>' + v.addedMessageCount + '</td></tr>' ;
+                      '<td>' + v.confirmingMessageCount + '</td>' +
+                      '<td>' + v.refuseMessageCount + '</td>' +
+                      '<td>' + v.giveupMessageCount + '</td>' +
+                      '<td>' + v.confirmedMessageCount + '</td></tr>' ;
+                      
             $("#editorStatTable tbody").append(html);
             $.each(v,function(k2,v2){
                 if( typeof(v2) == "object"){
@@ -566,12 +572,18 @@ $(function(){
                               '<td>---' + k2 + '</td>' + 
                               '<td>' + v2.toAddMessageIgnoreCount + '</td>' + 
                               '<td>' + v2.toAddMessageDoneCount + '</td>' +
-                              '<td>' + v2.addedMessageCount + '</td></tr>' ;
+                              '<td>' + v2.confirmingMessageCount + '</td>' +
+                              '<td>' + v2.refuseMessageCount + '</td>' +
+                              '<td>' + v2.giveupMessageCount + '</td>' +
+                              '<td>' + v2.confirmedMessageCount + '</td></tr>' ;
                     $("#editorStatTable tbody").append(html);
                 }  
             });
                 
             // }
+            // "confirmingMessageCount":0,
+            // "refuseMessageCount":0,
+            // "confirmedMessageCount":0
         });
 
     }
@@ -669,7 +681,7 @@ $(function(){
     }
 
     var getEditorData= function(){
-        var url = "http://115.29.8.74:9289/stat/summary";
+        var url = "http://localhost:9289/stat/workload";
         
         var data = getEditorParam();
 
@@ -859,7 +871,7 @@ $(function(){
 
 
     var getGroupData= function(){
-        var url = "http://115.29.8.74:9289/stat/summary";
+        var url = "http://localhost:9289/stat/summary";
         
         var data = getEditorParam();
 
@@ -1069,7 +1081,7 @@ $(function(){
     }
 
     var getRegionData= function(){
-        var url = "http://115.29.8.74:9289/stat/summary";
+        var url = "http://localhost:9289/stat/summary";
         
         var data = getRegionParam();
 
@@ -1220,7 +1232,7 @@ $(function(){
 
 
     var getRouteData= function(){
-        var url = "http://115.29.8.74:9289/stat/summary";
+        var url = "http://localhost:9289/stat/summary";
         
         var data = getParam();
 
@@ -1393,7 +1405,7 @@ $(function(){
 
 
     var getToAddData= function(){
-        var url = "http://115.29.8.74:9289/stat/toadd";
+        var url = "http://localhost:9289/stat/toadd";
         
         var data = getParam();
 
@@ -1570,7 +1582,7 @@ $(function(){
 
 
     var getData= function(){
-        var url = "http://115.29.8.74:9289/stat/added";
+        var url = "http://localhost:9289/stat/added";
         
         var data = getParam();
 

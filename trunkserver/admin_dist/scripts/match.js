@@ -77,6 +77,9 @@ if(localStorage){
 		}
 	});
 
+	$("#navNickname").click(function(){
+		location.href = "me.html";
+	});
 
 
 	$navLogout.click(function(){
@@ -88,14 +91,10 @@ if(localStorage){
 				success: function(data) {
 					debugger;
 					dataProtocolHandler(data,function(){
-						if(location.pathname.indexOf("main.html")>=0){
-							location.href = "index.html";
-						}else{
-							location.href = location.href;
-
-						}
+						location.href = location.href;
+						G_data.admin= {};
+						localStorage.setItem("admin","{}");
 						
-					},function(code,msg,data,dataType){
 					});
 					
 				},
@@ -111,6 +110,7 @@ if(localStorage){
 
 
 $(function() {
+    var adminUserId = "53e9cd5915a5e45c43813d1c";
     var safeRender =function(key){
         if (key){
             return key;
@@ -169,7 +169,7 @@ var Datepattern=function(d,fmt) {
             },
 
             error: function(data) {
-                errLog && errLog("getToAddMessage");
+                errLog && errLog("api/get_match error");
             }
         });
     }
@@ -257,6 +257,7 @@ var Datepattern=function(d,fmt) {
                       <p><span class="sub-text">有效期:</span><span class="value-text validTimeSec-text">{validTimeSec}</span></p>\
                       <p><span class="sub-text">发布时间:</span><span class="value-text sendtsendTimeime-text">{sendTime}</span></p>\
                       <p><span class="sub-text">备注:</span><span class="value-text comment-text">{comment}</span></p>\
+                      <p><span class="sub-text">操作:</span><a herf="javascript:void(0);" data-id="{id}" data-type="owner"  class="value-text delete btn btn-danger">删除</a></p>\
                     </div>';
         var html = template.replace(/{index}/g,index)
                             .replace(/{id}/g,data.id)
@@ -321,6 +322,7 @@ var Datepattern=function(d,fmt) {
                       <p><span class="sub-text">有效期:</span><span class="value-text validTimeSec-text">{validTimeSec}</span></p>\
                       <p><span class="sub-text">发布时间:</span><span class="value-text sendtsendTimeime-text">{sendTime}</span></p>\
                       <p><span class="sub-text">备注:</span><span class="value-text comment-text">{comment}</span></p>\
+                      <p><span class="sub-text">操作:</span><a herf="javascript:void(0);" data-id="{id}" data-type="driver" class="value-text delete btn btn-danger">删除</a></p>\
                     </div>';
         var html = template.replace(/{index}/g,index)
                             .replace(/{id}/g,data.id)
@@ -379,6 +381,36 @@ var Datepattern=function(d,fmt) {
         }
         
     });
+
+    var realDelete = function(id, _type){
+        var jqxhr = $.ajax({
+            url: "http://115.29.8.74:9288/api/bill/remove",
+            data: {
+                "billid": id,
+                "userId": adminUserId,
+                "userType": _type
+            },
+            type: "POST",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    debugger; 
+                    $("#item_"+id).remove();
+                    // location.href = "/";
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("api/bill/remove error");
+            }
+        });
+    }
+
+    $(".match-route").delegate(".delete","click",function(){
+        realDelete($(this).data("id"),$(this).data("type"));
+    });
+
+    
 
     getData();
 });

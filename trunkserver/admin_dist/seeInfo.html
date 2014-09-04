@@ -32,7 +32,7 @@
 <body>
 
     <nav class="navbar navbar-inverse" role="navigation">
-        <div class="container">
+        <div>
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-ul">
@@ -44,24 +44,37 @@
                 <a class="navbar-brand" href="/">天天回程车管理端</a>
             </div>
 
+
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-ul">
                 <ul class="nav navbar-nav">
-                    <li><a id="navVerifyIDNum" class="navOperate verifyPermission" href="verifyIDNum.html" style="display:none"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                    <li class="dropdown navOperate verifyPermission" style="display:none">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                      审核各种证 <span class="caret"></span>
+                    </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a id="navVerifyIDNum" class="" href="verifyIDNum.html"><span class="glyphicon glyphicon-download"></span> 身份证</a>
+                            </li>
+                            <li><a id="navVerifyDriverLicense" class="" href="verifyDriverLicense.html"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
+                            </li>
+                            <li><a id="navVerifyTrunkLicense" class="" href="verifyTrunkLicense.html"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
+                            </li>
+                        </ul>
                     </li>
-                    <li><a id="navVerifyDriverLicense" class="navOperate verifyPermission" href="verifyDriverLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 驾驶证</a>
-                    </li>
-                    <li><a id="navVerifyTrunkLicense" class="navOperate verifyPermission" href="verifyTrunkLicense.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 行驶证</a>
-                    </li>
+
                     <li><a id="navFeedback" class="navOperate feedbackPermission" href="feedback.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 用户反馈</a>
                     </li>
                     <li><a id="navAddInfo" class="navOperate addInfoPermission" href="addInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 添加货源车源</a>
                     </li>
                     <li><a id="navSeeInfo" class="navOperate confirmInfoPermission" href="confirmInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 审核信息</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
+                    <li><a class="navOperate seeInfoPermission" href="seeInfo.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 统计</a>
                     </li>
-                    <li><a id="navSeeInfo" class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    <li><a class="navOperate matchPermission" href="match.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 匹配</a>
+                    </li>
+                    <li><a class="navOperate regularPermission" href="regular.html" style="display:none"><span class="glyphicon glyphicon-send"></span> 常规路线</a>
+                    </li>
+                    <li><a class="navOperate getLogPermission" href="log.html" style="display:none"><span class="glyphicon glyphicon-send"></span> Log</a>
                     </li>
 
                 </ul>
@@ -104,6 +117,7 @@
                 <div class="btn-group summaryStat-view-mode-wrapper">
                     <button type="button" class="summaryStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
                     <button type="button" class="summaryStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
+                    <button type="button" class="summaryStat-view-mode btn btn-default" data-viewmode="week">按周显示</button>
                 </div>
                 <span class="summaryStat-period-wrapper">
                     从<input type="date" placeholder="起始日期" id="summaryStat-date-from"> 
@@ -140,7 +154,8 @@
                 <h2>录入工作量统计</h2>
                 <div class="btn-group editorStat-view-mode-wrapper">
                     <button type="button" class="editorStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
-                    <button type="button" class="editorStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
+                    <button type="button" class="editorStat-view-mode btn btn-default" data-viewmode="day">按日显示</button>
+                    <button type="button" class="editorStat-view-mode btn btn-primary" data-viewmode="week">按周显示</button>
                 </div>
                 <span class="editorStat-period-wrapper">
                     从<input type="date" placeholder="起始日期" id="editorStat-date-from"> 
@@ -156,6 +171,9 @@
                             <th>编辑</th>
                             <th>忽略数量</th>
                             <th>完成数量</th>
+                            <th>审核中数量</th>
+                            <th>驳回数量</th>
+                            <th>放弃数量</th>
                             <th>发布数量</th>
                         </tr>
                     </thead>
@@ -164,6 +182,8 @@
                             <td>2014年8月22日</td>
                             <td>teddywu</td>
                             <td>1001</td>
+                            <td>1002</td>
+                            <td>1002</td>
                             <td>1002</td>
                             <td>1002</td>
                         </tr>
@@ -178,6 +198,7 @@
                 <div class="btn-group regionStat-view-mode-wrapper">
                     <button type="button" class="regionStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
                     <button type="button" class="regionStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
+                    <button type="button" class="regionStat-view-mode btn btn-default" data-viewmode="week">按周显示</button>
                 </div>
                 <div class="btn-group regionStat-region-mode-wrapper">
                     <button type="button" class="regionStat-region-mode btn btn-default" data-regionmode="prov">省</button>
@@ -221,6 +242,7 @@
                 <div class="btn-group routeStat-view-mode-wrapper">
                     <button type="button" class="routeStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
                     <button type="button" class="routeStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
+                    <button type="button" class="routeStat-view-mode btn btn-default" data-viewmode="week">按周显示</button>
                 </div>
                 <div class="btn-group routeStat-region-mode-wrapper">
                     <button type="button" class="routeStat-region-mode btn btn-default" data-regionmode="prov">省</button>
@@ -265,6 +287,7 @@
                 <div class="btn-group groupStat-view-mode-wrapper">
                     <button type="button" class="groupStat-view-mode btn btn-default" data-viewmode="month">按月显示</button>
                     <button type="button" class="groupStat-view-mode btn btn-primary" data-viewmode="day">按日显示</button>
+                    <button type="button" class="groupStat-view-mode btn btn-default" data-viewmode="week">按周显示</button>
                 </div>
                 <span class="groupStat-period-wrapper">
                     从<input type="date" placeholder="起始日期" id="groupStat-date-from"> 
