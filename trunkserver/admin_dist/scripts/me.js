@@ -424,17 +424,32 @@ $(function(){
         });
 
         summaryArray.sort(function(a,b){
+            debugger;
+            var aTime;
+            var bTime;
 
-            if(a.time == "summary"){
+            if(a.time.indexOf(":")>=0){
+                aTime = a.time.split(":")[0];
+            }else{
+                aTime = a.time;
+            }
+
+            if(b.time.indexOf(":")>=0){
+                bTime = b.time.split(":")[0];
+            }else{
+                bTime = b.time;
+            }
+
+            if(aTime == "summary"){
                 return -1;
             }
 
-            if(b.time == "summary"){
+            if(bTime == "summary"){
                 return 1;
             }
-            if(+getDate(a.time) > +getDate(b.time)){
+            if(+getDate(aTime) > +getDate(bTime)){
                 return 1;
-            }else if(+getDate(a.time) == +getDate(b.time)){
+            }else if(+getDate(aTime) == +getDate(bTime)){
                 return 0;
             }else{
                 return -1;

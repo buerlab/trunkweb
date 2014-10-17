@@ -134,9 +134,11 @@ $(function(){
 
 
 
-
+    $("#routeStatMenu").click(function(){
+        getRouteData();
+    });
     // getRegionDataTest();
-    getRouteData();
+    // getRouteData();
 
     // getRegionDataTest2 = function(){
     //     // routeStatArray = parseSummaryArray(_d);

@@ -32,13 +32,15 @@
               </h3>
             </div>
             <div class="list-group">
-              <a href="javascript:void(0);" class="menu-item list-group-item active" data-id="summaryStat">数据总览</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="editorStat">录入工作量统计</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="regionStat">地区数据统计</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="routeStat">路线数据统计</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="groupStat">QQ群统计</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="toAddStat">浏览收集信息</a>
-              <a href="javascript:void(0);" class="menu-item list-group-item" data-id="addedStat">浏览发布信息</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="summaryStatMenu" data-id="summaryStat">数据总览</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="editorStatMenu" data-id="editorStat">录入工作量统计</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="regionStatMenu" data-id="regionStat">地区数据统计</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="routeStatMenu" data-id="routeStat">路线数据统计</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="groupStatMenu" data-id="groupStat">
+                QQ群统计</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="toAddStatMenu" data-id="toAddStat">浏览收集信息</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="addedStatMenu" data-id="addedStat">浏览发布信息</a>
+              <a href="javascript:void(0);" class="menu-item list-group-item" id="billAnalysisMenu" data-id="billAnalysis">Bill Analysis</a>
             </div>
           </div>
         </div>
@@ -305,8 +307,8 @@
                 <h2>浏览发布信息</h2>
                 <div class="btn-group addedStat-usertype-wrapper">
                   <button type="button" class="addedStat-usertype btn btn-default" data-usertype="driver">车源(求货)</button>
-                  <button type="button" class="addedStat-usertype btn btn-default" data-usertype="owner">货源(求车)</button>
-                  <button type="button" class="addedStat-usertype btn btn-primary" data-usertype="all">不限</button>
+                  <button type="button" class="addedStat-usertype btn btn-primary" data-usertype="owner">货源(求车)</button>
+                  <button type="button" class="addedStat-usertype btn btn-default" data-usertype="all">不限</button>
                 </div>
                 <span class="addedStat-period-wrapper">
 
@@ -322,11 +324,17 @@
 
                     <a herf="javascript:void(0);" class="btn btn-primary" id="addedStat-confirm">确定</a>
                 </span>
+                <p>
+                    <a herf="javascript:void(0);" class="btn btn-primary" id="todayTrunkInfoList" style="display:none">今日车源</a>
+                    <a herf="javascript:void(0);" class="btn btn-primary" id="todayGoodsInfoList" >今日货源</a>
+                </p>
                 <div class="addedStatPaginationWrapper">
                 </div>
                 <table class="table" id="addedStatTable">
                   <thead>
                     <tr>
+                      <th><a herf="javascript:void(0);" class="btn btn-primary" id="check-all">全选</a></th>
+                      <th>操作</th>
                       <th>电话号码</th>
                       <th>称呼</th>
                       <th>消息类型</th>
@@ -340,6 +348,7 @@
                   <tbody>
                     <tr>
                         <td>13410293412</td>
+                        <td>13410293412</td>
                         <td>泰师傅</td>
                         <td>货源</td>
                         <td>广东-广州-不限</td>
@@ -350,6 +359,46 @@
                     </tr>
                   </tbody>
                 </table>
+            </div>
+
+            <div class="main-container clearfix" id="billAnalysis">
+              <h2>billAnalysis</h2>
+              <div class="phone-list col-sm-3 clearfix">
+                <div class="list-group">
+                  <a href="javascript:void(0);" class="phone-list-item list-group-item"  data-phonenum="1922212222">张师傅 19283772 [2]</a>
+                 
+                </div>
+              </div>
+              <div class="data-container col-sm-9 clearfix">
+                <!-- <div class="btn-group billAnalysis-usertype-wrapper">
+                  <button type="button" class="billAnalysis-usertype btn btn-default" data-usertype="driver">车源(求货)</button>
+                  <button type="button" class="billAnalysis-usertype btn btn-primary" data-usertype="owner">货源(求车)</button>
+                  <button type="button" class="billAnalysis-usertype btn btn-default" data-usertype="all">不限</button>
+                </div>
+                <span class="billAnalysis-period-wrapper">
+
+                    从<input type="date" placeholder="起始日期" id="billAnalysis-date-from"></input> 
+                    到<input type="date" placeholder="结束日期" id="billAnalysis-date-to"></input>
+                    <input type="text" placeholder="出发地" id="billAnalysis-addr-from"></input>
+                    <input type="text" placeholder="目的地" id="billAnalysis-addr-to"></input>
+                    筛选<input type="text" placeholder="关键字" id="billAnalysis-input-keyword"></input>
+                    <a herf="javascript:void(0);" class="btn btn-primary" id="billAnalysis-confirm">确定</a>
+                </span> -->
+                
+                <table class="table" id="billAnalysisTable">
+                  <thead>
+                    <tr>
+                      <th>发布时间</th>
+                      <th>消息类型</th>
+                      <th>路线</th>
+                      <th>来源</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+                </table>
+              </div>
             </div>
       </div>
     </div>
@@ -394,6 +443,7 @@
     <script src="scripts/seeInfo_route.js"></script>
     <script src="scripts/seeInfo_toadd.js"></script>
     <script src="scripts/seeInfo_added.js"></script>
+    <script src="scripts/seeInfo_billAnalysis.js"></script>
     <!-- endbuild -->
 </body>
 </html>

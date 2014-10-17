@@ -200,7 +200,12 @@ $(function(){
 
 
     // getRegionDataTest();
-    getRegionData();
+    // getRegionData();
+
+    $("#regionStatMenu").click(function(){
+        debugger;
+        getRegionData();
+    });
 
     getRegionDataTest2 = function(){
         // regionStatArray = parseSummaryArray(_d);

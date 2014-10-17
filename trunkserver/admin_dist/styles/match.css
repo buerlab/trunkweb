@@ -7649,3 +7649,28 @@ td.visible-print {
 .data-list {
   width: 100%;
 }
+
+/* line 23, ../../app/styles/match.scss */
+.match-item {
+  background: #eee;
+}
+
+/* line 27, ../../app/styles/match.scss */
+.select-item {
+  background: #5bc0de;
+}
+
+/* line 30, ../../app/styles/match.scss */
+.send-message {
+  display: none;
+}
+
+/* line 33, ../../app/styles/match.scss */
+.match-item .send-message {
+  display: block !important;
+}
+
+/* line 36, ../../app/styles/match.scss */
+.match-me-item {
+  background: #eee;
+}

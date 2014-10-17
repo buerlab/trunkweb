@@ -5,6 +5,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.gen import coroutine, Future
 
+from models.defines import coroutineDebug
 import re
 from dbservice import *
 from dataprotocol import *

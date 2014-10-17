@@ -2,6 +2,12 @@ var G_data = G_data || {}
 
 G_data.currentAddInfoMode = "temp"; //默认是临时路线的添加模式
 G_data.adminUserId = "53e9cd5915a5e45c43813d1c";
+var getDate = function(str){
+                var a = str.split(" ");
+                var b1 = a[0].split("-");
+                var b2 = a[1].split(":");
+                return new Date(b1[0],(b1[1]-1),b1[2],b2[0],b2[1],b2[2])
+            }
 function initAddressSuggest(){
     var myAddress = []
     for(var i =0;i<ADDRESS.length;i++){
@@ -211,7 +217,7 @@ var Datepattern=function(d,fmt) {
             }
         }
 
-        if(+$trunkLength.val() +"" == "NaN"){
+        if($trunkRadio.get(0).checked && +$trunkLength.val() +"" == "NaN"){
             showTips("货车长度必须是数字");
             return null;
         }
@@ -236,15 +242,20 @@ var Datepattern=function(d,fmt) {
             return null;
         }
 
+        if(+$("#goodsVolume").val() +"" == "NaN"){
+            showTips("体积必须是数字");
+            return null;
+        }
+
+        if(!$trunkRadio.get(0).checked && +$("#needTrunkLength").val() +"" == "NaN"){
+            showTips("车长需求必须为数字");
+            return null;
+        }
+
 
         if($time.val()==""){
         }else{
-            var getDate = function(str){
-                var a = str.split(" ");
-                var b1 = a[0].split("-");
-                var b2 = a[1].split(":");
-                return new Date(b1[0],(b1[1]-1),b1[2],b2[0],b2[1],b2[2])
-            }
+            
             try{
                 var _d = getDate($time.val());
                 data.billTime = (+ _d)/1000;//服务器以秒作为单位；
@@ -266,8 +277,6 @@ var Datepattern=function(d,fmt) {
 
         }
 
-
-
         data.fromAddr = $from.val();
         data.toAddr = $to.val();
         data.phoneNum = $phoneNum.val();
@@ -277,7 +286,9 @@ var Datepattern=function(d,fmt) {
         data.userId = G_data.adminUserId;
         data.qqgroup = $("#qqgroup").val();
         data.qqgroupid = $("#qqgroupid").val();
-        data.rawText = $("#rawText").val();
+        data.rawText = $("#rawText").val().replace(/\'|\"/g,"");
+        data.sendTime = $("#sendTime").val();
+        data.wcUserId = $("#wcUserId").val();
         if(data.userType=="owner"){
             if($goodsPrice.val()!=""){
                 data.price = $goodsPrice.val();
@@ -289,6 +300,13 @@ var Datepattern=function(d,fmt) {
                 data.material = $goodsName.val();
             }else{
                 data.material = "普货";
+            }
+
+            if($("#goodsVolume").val()!=""){
+                data.volume = $("#goodsVolume").val();
+            }
+            if($("#needTrunkLength").val()!=""){
+                data.trunkLength = $("#needTrunkLength").val();
             }
         
         }else if(data.userType=="driver"){
@@ -316,7 +334,6 @@ var Datepattern=function(d,fmt) {
         return data;
     }
 
-
         //  requiredParams = {
     //     "userType":unicode,
     //     "billType": unicode,
@@ -339,6 +356,7 @@ var Datepattern=function(d,fmt) {
     //     "trunkLoad": unicode,
     //     "licensePlate": unicode,
     // } 
+
 
     function sendBill(){
         var url = "/message/send";
@@ -401,7 +419,6 @@ var Datepattern=function(d,fmt) {
         }
     }
 
-
     var secondToHour = function(seconds){
         return seconds/60/24/60 + "天";
     }
@@ -436,13 +453,21 @@ var Datepattern=function(d,fmt) {
      //  <th>内容</th>
      //  <th>操作</th>
 
+    var renderNumber = function(data){
+        if(data.groupid){
+            return data.groupid;
+        }else if(data.wcUserId){
+            return data.wcUserId.$oid;
+        }
+    }
+
     var renderToAddMessage = function(data){
         var renderItem = function(data){
-            var template = '<tr id="tr_'+ data._id.$oid +'">\
+            var template = '<tr id="tr_'+ data._id.$oid +'" data-wechatId="'+ data.wechatId +'">\
               <td>'+ data.nickname +'</td>\
               <td>'+ data.phonenum +'</td>\
               <td>'+ data.groupname +'</td>\
-              <td>'+ data.groupid +'</td>\
+              <td>'+ renderNumber(data) +'</td>\
               <td>'+ Datepattern(new Date(+data.time),"yyyy-MM-dd HH:mm:ss")    +'</td>\
               <td>'+ data.content  +'</td>\
               <td>\
@@ -583,7 +608,13 @@ var Datepattern=function(d,fmt) {
         $("#qqgroupid").val("");
         $("#qqgroup").val("");
         $("#rawText").val("");
+        $("#sendTime").val("");
+        $("#needTrunkLength").val("");
+        $("#goodsVolume").val("");
+        $("#wcUserId").val("");
+        $(".trunkType").eq(0).trigger("click");
     }
+
 
 
     function bindEvent(){
@@ -677,8 +708,8 @@ var Datepattern=function(d,fmt) {
         });
 
 
-        var fixed = true;
-        $(".my-panel").css({"position":"fixed"});
+        var fixed = false;
+        // $(".my-panel").css({"position":"fixed"});
 
         $("#my_panel_fixed").click(function(){
             if(!fixed){
@@ -704,6 +735,10 @@ var Datepattern=function(d,fmt) {
             debugger;
             var $this = $(this),
                 id = $this.parents().data("id");
+            var $tds = $("#tr_" + id).find("td");
+            var wechatId = $("#tr_" + id).data("wechatid");
+            var groupname = $tds.eq(2).html();
+
             var jqxhr = $.ajax({
                 url: "/message/delete",
                 data: {
@@ -725,6 +760,32 @@ var Datepattern=function(d,fmt) {
                     errLog && errLog("/message/delete error");
                 }
             });
+
+
+            if(groupname == "微信"){
+                var jqxhr = $.ajax({
+                    url: "http://115.29.8.74/wechat/inform",
+                    data: {
+                        "token": "buerlab",
+                        "wechatId" :wechatId,
+                        "type":"billignored"
+                    },
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        dataProtocolHandler(data,function(data){
+                            debugger; 
+                            // location.href = "/";
+                        });
+                    },
+
+                    error: function(data) {
+                        // errLog && errLog("http://115.29.8.74/wechat/inform");
+                    }
+                });
+            }
+            
+
             return false;
         });
         
@@ -758,26 +819,48 @@ var Datepattern=function(d,fmt) {
             return false;
         });
 
+
         $("#toAddMessageBody").delegate(".smart_add","click",function(){
             if (G_data.currentAddInfoMode !="temp"){
                 return;
             }
+
+            
+
             modifyingId = null;
             var $this = $(this),
                 id = $this.parents().data("id");
 
             var $tds = $("#tr_" + id).find("td");
+            var a = $tds.eq(5).html().split("<br>").join("");
             reset();
-            $nickname.val($tds.eq(0).html());
+            
+            if($trunkRadio.get(0).checked){
+                $nickname.val("车源");
+            }else if($goodsRadio.get(0).checked){
+                $nickname.val("货源");
+            }
+
             $phoneNum.val($tds.eq(1).html().split("-").join(""));
 
             $("#qqgroup").val($tds.eq(2).html());
-            $("#qqgroupid").val($tds.eq(3).html());
+            
             $("#rawText").val($tds.eq(5).html());
+            $("#sendTime").val(+getDate($tds.eq(4).html())/1000 );
+
+            if((new Date()).getHours()>=19  || a.indexOf("明天")>=0 ){
+                $("#validateTime").val("1");
+            }
+            
+            if($tds.eq(2).html() == "微信"){
+                $("#wcUserId").val($tds.eq(3).html());
+            }else{
+                $("#qqgroupid").val($tds.eq(3).html());
+            }
 
             // $time.val($tds.eq(2).html());
 
-            var a = $tds.eq(5).html().split("<br>").join("");
+            
             function isImportantData(str){
                 var pattern=/\d{11}|\d{7,8}|\d{3,4}-\d{7,8}/;
                 var ret = pattern.exec(str);
@@ -787,6 +870,27 @@ var Datepattern=function(d,fmt) {
                     return false;
                 }
             }
+
+            (function(){
+                var askTrunk = [/货讯/,/求.*车/,/有车/,/有回城车/,/求回城车/];
+                var askGoods = [/车讯/,/求货/,/有货/,/老板/,/空车/,/待货/];
+
+                $.each(askTrunk,function(k,v){
+                    var ret = v.exec(a);
+                    if(ret){
+                        $("#goodsRadio").trigger("click");
+                    }
+                })
+
+                $.each(askGoods,function(k,v){
+                    var ret = v.exec(a);
+                    if(ret){
+                        $("#trunkRadio").trigger("click");
+                    }
+                })
+            })();
+            
+            
 
             function getWeight(str){
                 var pattern=/\d+吨|\d+.\d+吨/;
@@ -804,6 +908,80 @@ var Datepattern=function(d,fmt) {
                 $goodsWeight.val(weight.split("吨").join(""));
             }
 
+            function getLength(str){
+                var lengthMap = {
+                    "九米六" : "9.6米",
+                    "9米6": "9.6米",
+                    "9.6" : "9.6米",
+                    "9*6" : "9.6米",
+                    "96" : "9.6米",
+                    "4.2" : "4.2米",
+                    "四米二": "4.2米",
+                    "4米2": "4.2米",
+                    "4*2": "4.2米",
+                    "4.2" : "4.2米",
+                    "四米三": "4.3米",
+                    "4米3": "4.3米",
+                    "4*3": "4.3米",
+                    "4.3" : "4.3米",
+                    "六米八": "6.8米",
+                    "6米8": "6.8米",
+                    "6*8": "6.8米",
+                    "6.8" : "6.8米",
+                    "六米二": "6.2米",
+                    "6米2": "6.2米",
+                    "6*2": "6.2米",
+                    "6.2" : "6.2米",
+                    "七米八": "7.8米",
+                    "7米8": "7.8米",
+                    "7*8": "7.8米",
+                    "7.8" : "7.8米",
+                    "七米六": "7.6米",
+                    "7米6": "7.6米",
+                    "7*6": "7.6米",
+                    "7.6" : "7.6米"
+                }
+
+                $.each(lengthMap,function(k,v){
+                    if(a.indexOf(k)>=0){
+                        return v;
+                    }
+                });
+
+                var pattern=/\d+米|\d+.\d+米/;
+                var ret = pattern.exec(str);
+                if(ret){
+                    return ret[0];
+                }else{
+                    return false;
+                }
+            }
+
+
+            var length = getLength(a);
+
+            if(length){
+                $("#trunkLength").val(length.split("米").join(""));
+                $("#needTrunkLength").val(length.split("米").join(""));
+                
+            }
+
+            function getVolume(str){
+                var pattern=/\d+方|\d+.\d+方/;
+                var ret = pattern.exec(str);
+                if(ret){
+                    return ret[0];
+                }else{
+                    return false;
+                }
+            }
+
+            var volume = getVolume(a);
+
+            if(volume){
+                $("#goodsVolume").val(volume.split("方").join(""));
+            }
+
             var phone = isImportantData(a);
             if(phone){
                 a = a.split(phone).join("").trim();
@@ -814,11 +992,154 @@ var Datepattern=function(d,fmt) {
                 }
 
                 a = a.replace(/<.*>/g,""); //去掉Html
-                a = a.replace(/货讯：/g,"").replace(/车讯：/g,"");   //去掉货讯车讯
+                a = a.replace(/货讯：/g,"").replace(/车讯：/g,"").replace(/货讯:/g,"").replace(/车讯:/g,"");   //去掉货讯车讯
                 $comment.val(a);
             }else{
                 $comment.val(a);
             }
+
+            if(a.indexOf("平板")>=0){
+                $(".trunkType").eq(2).trigger("click");
+            }
+            if(a.indexOf("高栏")>=0 || a.indexOf("高拦")>=0 || a.indexOf("高兰")>=0){
+                $(".trunkType").eq(3).trigger("click");
+            }
+            if(a.indexOf("箱车")>=0 || a.indexOf("厢车")>=0 || a.indexOf("箱式车")>=0 || a.indexOf("厢式车")>=0 ){
+                $(".trunkType").eq(1).trigger("click");
+            }
+            debugger;
+            var locationMap = {
+                "广州沙太" : "广东-广州-白云",
+                "沙太" : "广东-广州-白云",
+                "广州太和" : "广东-广州-白云",
+                "太和" : "广东-广州-白云",
+                "林安" : "广东-广州-白云",
+                "广州番禺": "广东-广州-番禺",
+                "番禺": "广东-广州-番禺",
+                "广州增城" : "广东-广州-增城",
+                "增城" : "广东-广州-增城",
+                "广州花都" : "广东-广州-花都",
+                "花都" : "广东-广州-花都",
+                "广州黄埔" : "广东-广州-黄埔",
+                "黄埔" : "广东-广州-黄埔",
+                "广州南沙" : "广东-广州-南沙",
+                "广州萝岗" : "广东-广州-萝岗",
+                "广州石井": "广东-广州-石井",
+                "石井" : "广东-广州-石井",
+                "深圳龙岗" : "广东-深圳-龙岗",
+                "龙岗" : "广东-深圳-龙岗",
+                "深圳宝安" : "广东-深圳-宝安",
+                "宝安" : "广东-深圳-宝安",
+                "保安" : "广东-深圳-宝安",
+                "深圳盐田" : "广东-深圳-盐田",
+                "盐田" : "广东-深圳-盐田",
+                "深圳南山" : "广东-深圳-南山",
+
+                "佛山顺德": "广东-佛山-顺德",
+                "西樵" : "广东-佛山-西樵",
+                "顺德" : "广东-佛山-顺德",
+                "佛山乐从" : "广东-佛山-乐从",
+                "乐从" : "广东-佛山-乐从",
+                "佛山南海" : "广东-佛山-南海",
+                "南海" :  "广东-佛山-南海",
+                "佛山三水" : "广东-佛山-三水",
+                "三水" : "广东-佛山-三水",
+                "大沥" :"广东-佛山-南海",
+                "珠海斗门" :"广东-珠海-斗门",
+                "斗门" :"广东-珠海-斗门",
+                
+                "东莞寮步" : "广东-东莞-寮步",
+                "东莞厚街" : "广东-东莞-厚街",
+                "凤岗" : "广东-东莞-凤岗",
+                "惠州惠城" : "广东-惠州-惠城", 
+                "惠城" : "广东-惠州-惠城", 
+                "惠州惠阳" : "广东-惠州-惠阳", 
+                "惠阳" : "广东-惠州-惠阳", 
+                "惠州陈江" : "广东-惠州-陈江", 
+                "大亚湾" : "广东-惠州-大亚湾区",
+                "惠州博罗" : "广东-惠州-博罗", 
+                "博罗" : "广东-惠州-博罗", 
+
+                "中山古镇" : "广东-中山-古镇",
+
+                "肇庆四会": "广东-肇庆-四会",
+                "四会" : "广东-肇庆-四会",
+
+                "阳东" : "广东-阳江-阳东",
+                "南雄" : "广东-韶关-南雄",
+                "广州" : "广东-广州-不限",
+                "深圳" : "广东-深圳-不限",
+                "东莞":  "广东-东莞-不限",
+                "惠州" : "广东-惠州-不限",
+                "中山" : "广东-中山-不限",
+                "韶关" : "广东-韶关-不限",
+                "珠海" : "广东-珠海-不限",
+                "佛山" : "广东-佛山-不限",
+                "清远" : "广东-清远-不限",
+                "汕头" : "广东-汕头-不限",
+                "湛江" : "广东-湛江-不限",
+                "河源" : "广东-河源-不限",
+                "茂名" : "广东-茂名-不限",
+                "江门" : "广东-江门-不限",
+                "阳江" : "广东-阳江-不限",
+                "珠海" : "广东-珠海-不限",
+                "梅州" : "广东-梅州-不限",
+                "肇庆" : "广东-肇庆-不限",
+                "云浮" : "广东-云浮-不限",
+                "汕尾" : "广东-汕尾-不限",
+                "揭阳" : "广东-揭阳-不限",
+                "潮州" : "广东-潮州-不限",
+                "南宁" : "广西-南宁-不限",
+                "桂林" : "广西-桂林-不限",
+                "江西上饶" : "江西-上饶-不限",
+                "珠三角" : "广东-不限-不限",
+            }
+            var b = a ;
+            var fromFlag = false;
+            var toFlag = false;
+            var a1 = null;
+            var a2 = null;
+            $.each(locationMap,function(k,v){
+
+                if(!fromFlag && b.indexOf(k) >=0){
+                    b = b.replace(k,"");
+                    a1 = {
+                        "key" : k,
+                        "value" : v
+                    }
+                    fromFlag = true;
+                }
+            });
+
+
+            $.each(locationMap,function(k,v){
+
+                if(!toFlag && b.indexOf(k) >=0){
+                    b = b.replace(k,"");
+                    a2 = {
+                        "key" : k,
+                        "value" : v
+                    }
+                    toFlag = true;
+                } 
+            });
+
+            if(a1 && a2){
+                if (a.indexOf(a1.key) < a.indexOf(a2.key)){
+                    $("#from").val(a1.value);
+                    $("#to").val(a2.value);
+                }else{
+                    $("#from").val(a2.value);
+                    $("#to").val(a1.value);
+                }   
+            }else{
+                if(a1){
+                    $("#from").val(a1.value);
+                    $("#to").val("");
+                }
+            }   
+            
+
         });
 
         $("#refuseMessageContainer").delegate(".modify","click",function(){
@@ -836,6 +1157,18 @@ var Datepattern=function(d,fmt) {
             $("#qqgroup").val(safeRender(data.qqgroup));
             $("#qqgroupid").val(safeRender(data.qqgroupid));
             $("#rawText").val(safeRender(data.rawText));
+            $("#goodsVolume").val(safeRender(data.volume));
+
+            if(data.wcUserId){
+                $("#wcUserId").val(safeRender(data.wcUserId.$oid));
+            }
+            
+            if($trunkRadio.get(0).checked){
+                $("#trunkLength").val(data.trunkLength);
+            }else if($goodsRadio.get(0).checked){
+                $("#needTrunkLength").val(data.trunkLength);
+            }
+
             $comment.val(safeRender(data.comment));
             $from.val(safeRender(data.fromAddr));
             $to.val(safeRender(data.toAddr));
@@ -853,6 +1186,7 @@ var Datepattern=function(d,fmt) {
 
             $validateTime.val(data.validTimeSec ? data.validTimeSec /(24 * 60 * 60) : "");
             $time.val(data.billTime ? Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "");
+            $("#sendTime").val(data.sendTime ? data.sendTime : "")
 
             if(data.userType =="owner"){
                 $("#goodsRadio").trigger("click");

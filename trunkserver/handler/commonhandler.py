@@ -3,8 +3,8 @@
 __author__ = 'zhongqiling'
 
 from basehandler import BaseHandler, addAllowOriginHeader
-from tornado.gen import coroutine
-from appconf import coroutineDebug
+from tornado.gen import coroutine, Return
+from models.defines import coroutineDebug
 from basehandler import auth
 from dbmodels import Regular
 from dataprotocol import DataProtocol
@@ -51,6 +51,7 @@ class RegularHandler(BaseHandler):
 
         print "kwargs",kwargs
         regular = Regular()
+
         regular.nickName = kwargs["nickName"]
         regular.phoneNum = kwargs["phoneNum"]
         regular.userType = kwargs["userType"]
@@ -77,6 +78,10 @@ class RegularHandler(BaseHandler):
         except Exception, e:
             print "RegularHandler",e
             pass
+
+        if (yield Regular.objects({"nickName":regular.nickName, "phoneNum":regular.phoneNum}).count()) > 0:
+            self.finish(DataProtocol.getJson(DataProtocol.ALREADY_EXIST))
+            raise Return()
 
         try:
             routes = json.loads(kwargs["routes"])
@@ -133,11 +138,11 @@ class RemoveRegularHandler(BaseHandler):
     # @auth
     @coroutineDebug
     @coroutine
-    # @addAllowOriginHeader
+    @addAllowOriginHeader
     def onCall(self, **kwargs):
-        self.add_header("Access-Control-Allow-Origin","*")
         result = yield Regular.objects({"id":kwargs["id"]}).remove()
         if result:
             self.finish(DataProtocol.getSuccessJson())
         else:
             self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+

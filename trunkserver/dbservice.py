@@ -209,8 +209,8 @@ def checkDbConn(func):
 class DbService(object):
     DEBUG_MODE = False
     # addr = "115.29.8.74"
-    # addr = "localhost"
     addr = "115.29.8.74"
+    # addr = "115.29.8.74"
     port = 16888
     user = "zql"
     psw = "fine"
@@ -303,18 +303,18 @@ class DbService(object):
     def deleteUserATrunk(self, userid, licensePlate):
         trunk = self.getUserTrunk(userid,licensePlate)
         if trunk is None:
-            print "trunk is None"
+            # print "trunk is None"
             return False
 
         ret = self.mongo.trunkDb.userCol.update({"_id":ObjectId(userid)}, {"$pull":{"trunks":{"licensePlate":licensePlate}}}, True)    
 
-        print "ret",ret    
+        # print "ret",ret    
         #如果当前车辆被删了，那么第一辆车为当前车辆
         if ret and trunk["isUsed"]:
-            print 'trunk["isUsed"]'
+            # print 'trunk["isUsed"]'
             trunks = self.getUserTrunks(userid)
             trunks[0]["isUsed"] = True
-            print "trunks", trunks
+            # print "trunks", trunks
             ret = self.mongo.trunkDb.userCol.update({"_id":ObjectId(userid)}, {"trunks":trunks}, True)
         return ret
         
@@ -349,9 +349,9 @@ class DbService(object):
         licensePlate = kwargs["licensePlate"]
 
         for item in trunks:
-            print "------licensePlate",licensePlate
-            print item["licensePlate"]
-            print item["licensePlate"].encode("utf-8")
+            # print "------licensePlate",licensePlate
+            # print item["licensePlate"]
+            # print item["licensePlate"].encode("utf-8")
             if item["licensePlate"].encode("utf-8") == licensePlate:
 
                 item["licensePlate"] = kwargs["licensePlate"] if "licensePlate" in kwargs else None
@@ -379,7 +379,7 @@ class DbService(object):
 
     @checkDbConn
     def confirmUser(self, userinput, encryptPsw):
-        print "psw", encryptPsw
+        # print "psw", encryptPsw
         condition = [{"username": userinput, "psw": encryptPsw}, {"phoneNum": userinput, "psw": encryptPsw}]
         item = self.mongo.trunkDb.userCol.find_one({"$or": condition})
         return item["_id"] if item else False
@@ -626,7 +626,7 @@ class DbService(object):
     ############ 评论相关(begin) #########
     @checkDbConn
     def addComment(self, **kwargs):
-        print kwargs.viewkeys() - commentDict.viewkeys()
+        # print kwargs.viewkeys() - commentDict.viewkeys()
         if not kwargs.viewkeys() - commentDict.viewkeys():
             user = self.mongo.trunkDb.userCol.find_one({"_id": ObjectId(kwargs["toUserId"])})
             if user:
@@ -650,10 +650,10 @@ class DbService(object):
 
                 newStars = (stars * commentCount + int(kwargs["starNum"]) ) * 1.0 / (commentCount + 1)
 
-                print "stars=", stars
-                print "commentCount", commentCount
-                print 'kwargs["starNum"]', kwargs["starNum"]
-                print "newStars", newStars
+                # print "stars=", stars
+                # print "commentCount", commentCount
+                # print 'kwargs["starNum"]', kwargs["starNum"]
+                # print "newStars", newStars
 
                 user[userType+"Stars"] = newStars
                 user[userType+"Comments"].append(str(commentId))
@@ -671,10 +671,10 @@ class DbService(object):
     @checkDbConn
     def removeComment(self, commentId):
         comment = self.mongo.trunkDb.commentCol.find_one({"_id": ObjectId(commentId)})
-        print comment
+        # print comment
         userType = "driver"
         if "userType" in comment:
-            print "in comment"
+            # print "in comment"
             userType = comment["userType"]
 
         if comment:
@@ -695,9 +695,9 @@ class DbService(object):
                 else:
                     newStars = (stars * commentCount - comment["starNum"] ) * 1.0 / (commentCount - 1)
 
-                print "stars=", stars
-                print "commentCount", commentCount
-                print "newStars", newStars
+                # print "stars=", stars
+                # print "commentCount", commentCount
+                # print "newStars", newStars
 
                 # update driverStars
                 self.mongo.trunkDb.userCol.update({"_id": ObjectId(comment["toUserId"])}, {"$set": {user[userType+"Stars"]: newStars}})
@@ -795,7 +795,7 @@ class DbService(object):
         if userId:
             item =self.mongo.trunkDb.LocationCol.find({"userId":userId}).sort([("timestamp",-1)]).limit(1)
             if item and item.count()>0:
-                print "getLastLocation", item[0]
+                # print "getLastLocation", item[0]
                 return item[0]
             else:
                 return None
@@ -822,7 +822,7 @@ class DbService(object):
     ############ admin相关(begin) #########
     @checkDbConn
     def addAdmin(self, username, encryptPsw,realname,phoneNum,bankName,bankNum):
-        print "addAdmin",username,encryptPsw,realname,phoneNum,bankName,bankNum
+        # print "addAdmin",username,encryptPsw,realname,phoneNum,bankName,bankNum
         self.mongo.trunkDb.adminCol.insert({"username": username, 
             "psw": encryptPsw, 
             "realname":realname,
@@ -857,17 +857,11 @@ class DbService(object):
         else:
             return False
 
-
     @checkDbConn
     def confirmAdmin(self, username, encryptPsw):
         condition = [{"username": username, "psw": encryptPsw}]
         item = self.mongo.trunkDb.adminCol.find_one({"$or": condition},{"psw": 0, "regtime": 0})
         return item if item else False
-
-    @checkDbConn
-    def getAdmin(self, userid):
-        user = self.mongo.trunkDb.adminCol.find_one({"_id": ObjectId(userid)},{"psw": 0, "regtime": 0})
-        return user
 
     @checkDbConn
     def getAdmin(self, userid):
@@ -914,7 +908,7 @@ class DbService(object):
         trunkList = []
         for item in self.mongo.trunkDb.userCol.find({"trunks": {"$exists": True}},
                                                     {"IDNum": 1, "_id": 1, "nickName": 1, "phoneNum": 1, "trunks": 1}):
-            print item
+            # print item
             if item.has_key("trunks"):
                 data = {}
                 data["_id"] = item["_id"]
@@ -927,12 +921,12 @@ class DbService(object):
                 if(item.has_key("phoneNum")):
                     data["phoneNum"] = item["phoneNum"]
 
-                print "data=",data
+                # print "data=",data
                 for trunk in item["trunks"]:
                     if trunk.has_key("trunkLicenseVerified") and  trunk["trunkLicenseVerified"] == 1:
-                        print "trunk=",trunk
+                        # print "trunk=",trunk
                         d = copy.copy(data)
-                        print "d=",d
+                        # print "d=",d
                         if(trunk.has_key("trunkLicensePicFilePath")):
                             d["trunkLicensePicFilePath"] = trunk["trunkLicensePicFilePath"]
 
@@ -942,23 +936,23 @@ class DbService(object):
                         if(trunk.has_key("licensePlate")):
                             d["licensePlate"] = trunk["licensePlate"]
 
-                        print "d=",d
+                        # print "d=",d
                         trunkList.append(d)
         return trunkList
 
     @checkDbConn
     def passTrunkLicenseVerifying(self, userid, licensePlate):
         user = self.mongo.trunkDb.userCol.find_one({"_id": ObjectId(userid)})
-        print user
-        print userid
-        print licensePlate
+        # print user
+        # print userid
+        # print licensePlate
         if user and "trunks" in user:
 
             for trunk in user["trunks"]:
-                print trunk
+                # print trunk
                 # print "here"
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
-                    print "here"
+                    # print "here"
                     trunk["trunkLicenseVerified"] = 2
                     self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
                     return True
@@ -970,7 +964,7 @@ class DbService(object):
 
         user = self.mongo.trunkDb.userCol.find_one({"_id": ObjectId(userid)})
         if user and user.has_key("trunks"):
-            print
+            # print
             for trunk in user["trunks"]:
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
                     trunk["trunkLicenseVerified"] = 3
@@ -985,12 +979,12 @@ class DbService(object):
 
         if user and "trunks" in user:
             for trunk in user["trunks"]:
-                print "compare"
-                print licensePlate
-                print trunk["licensePlate"].encode("utf-8")
+                # print "compare"
+                # print licensePlate
+                # print trunk["licensePlate"].encode("utf-8")
 
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
-                    print "here"
+                    # print "here"
                     trunk["trunkLicensePicFilePath"] = path
                     trunk["trunkLicense"] = trunkLicense
                     trunk["trunkLicenseVerified"] = 1
@@ -1004,23 +998,23 @@ class DbService(object):
         user = self.mongo.trunkDb.userCol.find_one({"_id": ObjectId(userid)})
         if user and "trunks" in user:
             for trunk in user["trunks"]:
-                print 'trunk in user["trunks"]:'
+                # print 'trunk in user["trunks"]:'
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
-                    print 'if trunk["licensePlate"].encode("utf-8") == licensePlate:'
-                    print trunk
+                    # print 'if trunk["licensePlate"].encode("utf-8") == licensePlate:'
+                    # print trunk
                     if "trunkPicFilePaths" in trunk:
-                        print '"trunkPicFilePaths" in trunk:'
+                        # print '"trunkPicFilePaths" in trunk:'
                         trunk["trunkPicFilePaths"].append(path)
-                        print "trunk", trunk
+                        # print "trunk", trunk
                     else:
-                        print  '"trunkPicFilePaths" not in trunk:'
+                        # print  '"trunkPicFilePaths" not in trunk:'
                         trunk["trunkPicFilePaths"] = []
                         trunk["trunkPicFilePaths"].append(path)
-                        print "trunk", trunk
+                        # print "trunk", trunk
 
-                    print "user=",user
-                    print self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
-                    print "user=",user
+                    # print "user=",user
+                    self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
+                    # print "user=",user
                     return True
         return False
 
@@ -1032,7 +1026,7 @@ class DbService(object):
                 if trunk["licensePlate"].encode("utf-8") == licensePlate:
 
                     trunk["trunkPicFilePaths"] =[]
-                    print self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
+                    self.mongo.trunkDb.userCol.update({"_id": ObjectId(userid)}, user)
                     return True
 
         return False
@@ -1048,7 +1042,7 @@ class DbService(object):
 
         data = self.mongo.trunkDb.regcodeCol.find({"phonenum":phonenum,"regcode":regcode}).sort([("timestamp",-1)])
         now = time.time()
-        print data.count()
+        # print data.count()
         if data.count()<=0:
             return False
 
@@ -1136,57 +1130,68 @@ class DbService(object):
 
 #state : wait ignore done
     def getToAddMessage(self,keyword,user):
-        try:
-            condition = {}
+        condition = {}
 
-            if not keyword is None:
-                query = re.compile(keyword)
-                condition["$or"] = [
-                    {"phonenum":query},
-                    {"nickname":query},
-                    {"content":query},
-                    {"groupname":query},
-                    {"groupid":query}
-                ]
-            ret = []
+        if not keyword is None:
+            query = re.compile(keyword)
+            condition["$or"] = [
+                {"phonenum":query},
+                {"nickname":query},
+                {"content":query},
+                {"groupname":query},
+                {"groupid":query}
+            ]
+        ret = []
 
-            # 清除环境
-            for item in self.mongo.trunkDb.editingMessageCol.find({"editor":user}):
-                print "editingMessageCol item", item
-                toAddItem = self.mongo.trunkDb.toAddMessageCol.find_one({"_id":ObjectId(item["_id"])})
-                toAddItem["state"] = "wait"
-                toAddItem["editor"] = None
+        a = datetime.datetime.now()
+        a = a.replace(a.year,a.month,a.day,0,0,0)
+        ts = calendar.timegm(a.utctimetuple()) * 1000 -28800000  # 减8个小时
+        print "getToAddMessage",a
+        print ts
+        # 清除环境
+        for item in self.mongo.trunkDb.editingMessageCol.find({"editor":user}):
+            # print "editingMessageCol item", item
 
-                print "toAddItem",toAddItem
+            if item is None:
+                return
 
-                self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},toAddItem)
+            toAddItem = self.mongo.trunkDb.toAddMessageCol.find_one({"_id":ObjectId(item["_id"])})
+            toAddItem["state"] = "wait"
+            toAddItem["editor"] = None
 
-            self.mongo.trunkDb.editingMessageCol.remove({"editor":user})
+            # print "toAddItem",toAddItem
 
-            for item in self.mongo.trunkDb.toAddMessageCol.find({"state":"wait"}).sort([("time",-1)]).limit(10):
+            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},toAddItem)
 
-                item["state"] = "editing"
-                item["editor"] = user
+        self.mongo.trunkDb.editingMessageCol.remove({"editor":user})
 
-                print "item groupid",item["groupid"]
-                self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},item)
+        for item in self.mongo.trunkDb.toAddMessageCol.find({"state":"wait","time":{"$gt":ts}}).sort([("time",-1)]).limit(10):
 
+            item["state"] = "editing"
+            item["editor"] = user
+
+            # print "item groupid",item["groupid"]
+            self.mongo.trunkDb.toAddMessageCol.update({"_id":ObjectId(item["_id"])},item)
+
+            if self.mongo.trunkDb.editingMessageCol.find({"_id":ObjectId(item["_id"])}).count()==0:
                 self.mongo.trunkDb.editingMessageCol.insert(item)
-                ret.append(item)
+            ret.append(item)
 
-            return ret
-        except:
-            mylog.getlog().exception(getLogText("getToAddMessage dbservice"))
+        return ret
 
 
     def delToAddMessage(self,id,user):
         self.mongo.trunkDb.editingMessageCol.remove({"_id": ObjectId(id)})
         mes = self.mongo.trunkDb.toAddMessageCol.find_one({"_id": ObjectId(id)})
-        content = mes["content"]
-        mes["state"] = "ignore"
-        mes["editor"] = user
-        print mes
-        self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+        if mes:
+            content = mes["content"]
+            mes["state"] = "ignore"
+            mes["editor"] = user
+            # print mes
+            self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+            return True
+        else:
+            return False
 
         # condition = {}
         # a = datetime.datetime.now()
@@ -1208,19 +1213,22 @@ class DbService(object):
     def doneToAddMessage(self,id,user):
         self.mongo.trunkDb.editingMessageCol.remove({"_id": ObjectId(id)})
         mes = self.mongo.trunkDb.toAddMessageCol.find_one({"_id": ObjectId(id)})
-        mes["state"] = "done"
-        mes["editor"] = user
-        print "mes",mes
-        self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+        if mes:
+            mes["state"] = "done"
+            mes["editor"] = user
+            # print "mes",mes
+            self.mongo.trunkDb.toAddMessageCol.update({"_id": ObjectId(id)},mes)
+            return True
+        else:
+            return False
 
-
-    def addToAddMessage(self,time,nickname,content,groupname,groupid,phonenum):
+    def addToAddMessage(self,time,nickname,content,groupname,groupid,phonenum,wcUserId):
 
         if(self.toAddMessageExist(time,content)):
             return None
 
         return self.mongo.trunkDb.toAddMessageCol.insert(
-            {"time":int(time),"nickname":nickname,"content":content,"groupid":groupid,"groupname":groupname,"phonenum": phonenum,"state":"wait"}
+            {"time":int(time),"nickname":nickname,"content":content,"groupid":groupid,"groupname":groupname,"phonenum": phonenum,"state":"wait","wcUserId":wcUserId}
         )
 
     def toAddMessageExist(self,time,content):
@@ -1243,7 +1251,7 @@ class DbService(object):
 
     def sendToAddMessage(self,user, **kwargs):
         if kwargs:
-            print "sendToAddMessage=",kwargs
+            # print "sendToAddMessage=",kwargs
             if self.AddedMessageExist(**kwargs):
                 return False
             else:
@@ -1254,15 +1262,22 @@ class DbService(object):
 
     def AddedMessageExist(self, **kwargs):
         if kwargs:
-            print "AddedMessageExist=",kwargs
-            item = self.mongo.trunkDb.addedMessageCol.find({"fromAddr":kwargs["fromAddr"],
-                                                    "toAddr":kwargs["toAddr"],
+            # print "AddedMessageExist=",kwargs
+
+            _fromAddrArr = kwargs["fromAddr"].split("-")
+            _fromAdd =  re.compile(_fromAddrArr[0] + "-" +  _fromAddrArr[1]) 
+            _toAddrArr = kwargs["toAddr"].split("-")
+            _toAdd =  re.compile(_toAddrArr[0] + "-" +  _toAddrArr[1])
+
+            
+            item = self.mongo.trunkDb.addedMessageCol.find({"fromAddr":_fromAdd,
+                                                    "toAddr":_toAdd,
                                                     "userType":kwargs["userType"],
                                                     "state":{"$in":["confirming","confirmed"]},
                                                     "phoneNum":kwargs["phoneNum"]}).sort([("sendTime",-1)]).limit(1)
             if item and item.count()>0:
                 # 一天内算是重复添加
-                print "time.time() - item[0].sendTime",(time.time() - item[0]["sendTime"])
+                # print "time.time() - item[0].sendTime",(time.time() - item[0]["sendTime"])
                 if time.time() - item[0]["sendTime"] < 24 * 60 * 60:
                     return True
                 else:
@@ -1272,20 +1287,26 @@ class DbService(object):
 
     def deleteAddedMessage(self, **kwargs):
         if kwargs:
-            print "DeleteAddedMessage=",kwargs
+            # print "DeleteAddedMessage=",kwargs
             item = self.mongo.trunkDb.addedMessageCol.find({"fromAddr":kwargs["fromAddr"],
                                                     "toAddr":kwargs["toAddr"],
                                                     "userType":kwargs["userType"],
                                                     "phoneNum":kwargs["phoneNum"]}).sort([("sendTime",-1)]).limit(1)
-            print "item.count()",item.count()
+            # print "item.count()",item.count()
             if item and item.count()>0:
-                # 一天内算是重复添加
+                self.mongo.trunkDb.addedMessageCol.remove({"_id":ObjectId(item[0]["_id"])})
+                print "delete111111"
+            else:
+                print "not delete111111"
 
-                print "deleteAddedMessage time.time() - item[0].sendTime",(time.time() - item[0]["sendTime"])
-                if time.time() - item[0]["sendTime"] < 24 * 60 * 60:
-                    self.mongo.trunkDb.addedMessageCol.remove({"_id":ObjectId(item[0]["_id"])})
-                else:
-                    return False
+            item = self.mongo.trunkDb.billCol.find({"fromAddr":kwargs["fromAddr"],
+                                                    "toAddr":kwargs["toAddr"],
+                                                    "phoneNum":kwargs["phoneNum"]}).sort([("sendTime",-1)]).limit(1)
+            # print "item.count()",item.count()
+            print "item",item
+            if item and item.count()>0:
+                self.mongo.trunkDb.billCol.remove({"_id":ObjectId(item[0]["_id"])})
+                print "delete22222"
             else:
                 return False
 
@@ -1309,8 +1330,12 @@ class DbService(object):
 
     def getWeekTimeStr(self,_time):
         a = datetime.datetime.fromtimestamp(_time)
-        b = a.replace(a.year,a.month,a.day- a.weekday(),0,0,0,0)
-        c = a.replace(a.year,a.month,a.day +6 - a.weekday(),0,0,0,0)
+        a1 = a.replace(a.year,a.month,a.day,0,0,0,0)
+        b = a1 - datetime.timedelta(days = a.weekday())
+        c = a1 + datetime.timedelta(days = 6 - a.weekday())
+        
+        # b = a.replace(a.year,a.month,a.day- a.weekday(),0,0,0,0)
+        # c = a.replace(a.year,a.month,a.day +6 - a.weekday(),0,0,0,0)
 
         b1 = time.strftime("t-%Y-%m-%d",b.timetuple())
         c1 = time.strftime(":%Y-%m-%d",c.timetuple())
@@ -1383,7 +1408,7 @@ class DbService(object):
                     else:
                         timestr = "t-2014-09-01"
                 elif viewmode == "week":
-                    print '(int(item["time"])/1000)',(int(item["time"])/1000)
+                    # print '(int(item["time"])/1000)',(int(item["time"])/1000)
                     timestr = self.getWeekTimeStr((int(item["time"])/1000))
                 else:
                     timestr = time.strftime("t-%Y-%m",time.localtime(int(item["time"])/1000))
@@ -1553,31 +1578,31 @@ class DbService(object):
             # print item
             flag = True
             if not fromDate is None and int(item["sendTime"]) * 1000< int(fromDate):
-                print 'region != "prov" and region != "city" and region !="district"'
+                # print 'region != "prov" and region != "city" and region !="district"'
                 flag = False
 
             if not toDate is None and int(item["sendTime"]) * 1000>int(toDate) +  24 * 60 * 60 * 1000 :
-                print 'region != "prov" and region != "city" and region !="district"'
+                # print 'region != "prov" and region != "city" and region !="district"'
                 flag = False
 
             if regionmode != "prov" and regionmode != "city" and regionmode !="district":
-                print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
+                # print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
                 flag = False
 
             #根据货源来筛选
             if not usertype is None and usertype != "all" and usertype != item["userType"]:
-                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                # print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
                 flag = False
 
             #排除格式不对的
             if len(item["fromAddr"].split("-"))!=3 or len(item["toAddr"].split("-"))!=3:
-                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                # print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
                 flag = False
 
             #筛选
             if not region is None and region != "all" and (not region in item["fromAddr"].encode("utf-8") and not region in item["toAddr"].encode("utf-8")):
-                print region,item["fromAddr"],item["toAddr"]
-                print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
+                # print region,item["fromAddr"],item["toAddr"]
+                # print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
                 flag = False
 
             # print "flag",flag
@@ -1641,34 +1666,34 @@ class DbService(object):
             # print item
             flag = True
             if not fromDate is None and int(item["sendTime"]) * 1000< int(fromDate):
-                print 'region != "prov" and region != "city" and region !="district"'
+                # print 'region != "prov" and region != "city" and region !="district"'
                 flag = False
 
             if not toDate is None and int(item["sendTime"]) * 1000>int(toDate) +  24 * 60 * 60 * 1000 :
-                print 'region != "prov" and region != "city" and region !="district"'
+                # print 'region != "prov" and region != "city" and region !="district"'
                 flag = False
 
             if regionmode != "prov" and regionmode != "city" and regionmode !="district":
-                print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
+                # print 'regionmode != "prov" and regionmode != "city" and regionmode !="district"'
                 flag = False
 
             #根据货源来筛选
             if not usertype is None and usertype != "all" and usertype != item["userType"]:
-                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                # print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
                 flag = False
 
             #排除格式不对的
             if len(item["fromAddr"].split("-"))!=3 or len(item["toAddr"].split("-"))!=3:
-                print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
+                # print 'not usertype is None and usertype != "all" and usertype != item["usertype"]:'
                 flag = False
 
             #筛选
             if not region is None and region != "all" and (not region in item["fromAddr"].encode("utf-8") and not region in item["toAddr"].encode("utf-8")):
-                print region,item["fromAddr"],item["toAddr"]
-                print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
+                # print region,item["fromAddr"],item["toAddr"]
+                # print 'not region is None and (not region in item["fromAddr"] and not region in item["toAddr"])'
                 flag = False
 
-            print "flag",flag
+            # print "flag",flag
             if flag:
                 if not "summary" in ret:
                     ret["summary"] = {}
@@ -1747,7 +1772,7 @@ class DbService(object):
 
         start = (page -1) * perpage
 
-        print "condition",condition
+        # print "condition",condition
 
         data = self.mongo.trunkDb.toAddMessageCol.find(condition).skip(start)
         pageCount = int(self.mongo.trunkDb.toAddMessageCol.find(condition).count()/perpage) +1
@@ -1810,7 +1835,7 @@ class DbService(object):
 
         start = (page -1) * perpage
 
-        print "condition",condition
+        # print "condition",condition
 
         data = self.mongo.trunkDb.addedMessageCol.find(condition).skip(start)
         pageCount = int(self.mongo.trunkDb.addedMessageCol.find(condition).count()/perpage) +1
@@ -1822,6 +1847,68 @@ class DbService(object):
         for item in data.limit(perpage):
             ret["data"].append(item)
         return ret
- ############ Message(end) #########
+############ Message(end) #########
 
+###########电话短信营销 #############
 
+    def grabPhonenum(self, **kwargs):
+        if kwargs:
+            kwargs["addtime"] = time.time()
+
+            if self.phonenumExist(kwargs["phonenum"]):
+                item = self.mongo.trunkDb.grabPhonenumCol.find_one({"phonenum" :kwargs["phonenum"] })
+                item["repeat"] = item["repeat"] + 1
+                item["region"] = kwargs["region"]
+                self.mongo.trunkDb.grabPhonenumCol.update({"phonenum" : kwargs["phonenum"]},item)
+                return False
+            else:
+                kwargs["repeat"] = 0
+                return self.mongo.trunkDb.grabPhonenumCol.insert(kwargs)
+
+    def phonenumExist(self, phonenum):
+        if phonenum:
+            if self.mongo.trunkDb.grabPhonenumCol.find({"phonenum" : phonenum}).count() > 0:
+                return True
+            else:
+                return False
+        else:
+            return True
+
+    def saveBaixingUrl(self, url):
+        if not self.baixingUrlExist(url):
+            self.mongo.trunkDb.baixingUrl.insert({"url":url})
+
+    def baixingUrlExist(self, url):
+            if url:
+                if self.mongo.trunkDb.baixingUrl.find({"url" : url}).count() > 0:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+
+    def saveGanjiUrl(self, url):
+        if not self.ganjiUrlExist(url):
+            self.mongo.trunkDb.ganjiUrl.insert({"url":url})
+
+    def ganjiUrlExist(self, url):
+            if url:
+                if self.mongo.trunkDb.ganjiUrl.find({"url" : url}).count() > 0:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+
+    def save56135Url(self, url):
+        if not self.a56135UrlExist(url):
+            self.mongo.trunkDb.a56135Url.insert({"url":url})
+
+    def a56135UrlExist(self, url):
+            if url:
+                if self.mongo.trunkDb.a56135Url.find({"url" : url}).count() > 0:
+                    return True
+                else:
+                    return False
+            else:
+                return True

@@ -21,6 +21,7 @@ class BillState(object):
 
 class UserLevel(object):
     NORMAL = "normal"
+    WECHAT = "wechat"
     MANAGER = "manager"
 
 class UserType(object):
@@ -51,6 +52,7 @@ class RecomendBillType(object):
     GOODS = "goods"
     TRUNK = "trunk"
     LOCAL = "local_trunk"
+
 
 def createRecommendBill(userdata, bill, recBillType):
     return {"user":userdata, "bill":bill, "type":recBillType}

@@ -14,10 +14,14 @@ from urllib import unquote
 import StringIO
 import os
 from jobs import *
-from models import connect
+from models.backends import connect
 import time
 from  jpush.RegCodeService import RegCode
-from appconf import AppConf, printConf
+from dbmodels import RawBillMsg
+
+
+from wechatserver import WechatHandler, wechatComander, SendToWechatHandler, WechatInformHandler
+from binbinserver import BBWechatHandler, BBUploadHandler
 
 try:
     from PIL import Image
@@ -112,7 +116,12 @@ application = tornado.web.Application([
     (r'/images/(.*)', tornado.web.StaticFileHandler, {'path': static_path +"/images"}),
     (r'/scripts/(.*)', tornado.web.StaticFileHandler, {'path': static_path +"/scripts"}),
     (r'/styles/(.*)', tornado.web.StaticFileHandler, {'path': static_path + "/styles"}),
-    (r'/(.*)', RestHandler)
+    (r'/wechat', WechatHandler),
+    (r'/wechat/send', SendToWechatHandler),
+    (r'/wechat/inform', WechatInformHandler),
+    (r'/bbwechat', BBWechatHandler),
+    (r'/bbupload', BBUploadHandler),
+    (r'/(.*)', RestHandler),
 ], **settings)
 
 def _quit_if_ioloop_is_empty():
@@ -150,7 +159,6 @@ def initAppConf():
 
     AppConf.conf = conf
 
-writePid()
 
 if __name__ == "__main__":
     mylog.getlog().info("application start ,http://115.29.8.74")
@@ -159,6 +167,7 @@ if __name__ == "__main__":
     server = HTTPServer(application, xheaders=True)
     server.listen(options.port)
 
+    tornado.ioloop.PeriodicCallback(wechatComander.execute, 100).start()
 
     tornado.ioloop.IOLoop.instance().start()
 

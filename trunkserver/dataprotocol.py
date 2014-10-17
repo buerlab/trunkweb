@@ -22,6 +22,7 @@ class DataProtocol(object):
     SERVER_ERROR = -10
 
     PERMISSION_DENY = -11 #没有权限
+    USER_EXISTED_ERROR = -12 #用户不存在
     
     AT_LEAST_ONE_TRUNK_ERROR = -20001 #只要要保存一辆货车
     BILL_REMOVED = -30001  #bill已经被删除
@@ -33,6 +34,8 @@ class DataProtocol(object):
     CANNOT_SELF_COMMENT = -40002 #不能给自己评论呢
     MESSAGE_DUPLICATE_ERROR = -50001 #重复添加message
     # code: 0 代表成功 ，负数代表失败，-1 ~ -100 通用失败， -1000 ~ -9999 自定义错误代码
+
+    ALREADY_EXIST = -50001   #要添加的东西已经存在
 
    
     # datatype include "html","json","string","nothing"

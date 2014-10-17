@@ -295,6 +295,10 @@ $(function(){
       *****************/  
 
     bindEvent();
-    getSummaryData();
+    $("#summaryStatMenu").click(function(){
+        getSummaryData();
+        debugger;
+    });
+    // getSummaryData();
     // getSummaryDataTest();
 });

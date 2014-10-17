@@ -14,11 +14,11 @@ from urllib import unquote
 import StringIO
 import os
 from jobs import *
-from models import connect
+from models.backends.motorBackend import connect
 import time
 from  jpush.RegCodeService import RegCode
-from  jpush.YunPianRegCodeService import YunPianRegCode,YunPianMsgAfterCalled
-from appconf import AppConf, printConf
+from  jpush.YunPianRegCodeService import YunPianRegCode,YunPianMsgAfterCalled,YunPianFindPasswordCode
+from appconf import *
 from billmatchcontroller import BillMatchController
 from handler.commonhandler import RegularHandler, RemoveRegularHandler, AddRouteHandler, GetRegularHandler
 
@@ -603,26 +603,17 @@ class RegCodeAfterCalledHandler(BaseHandler):
         if not phonenum is None and not userType is None:
             #发送短信
             regcodeObject = YunPianMsgAfterCalled()
-            url = "http://t.cn/RhP5DqN"  #http://115.29.8.74/app/trunkdriver.apk
+            url = "http://t.cn/RhlRVXa"  #http://115.29.8.74/app/trunkdriver.apk
 
             #司机打给货主，让货主安装个货主版的
             if userType == "driver":
-                url = '轻松找到回程货！http://t.cn/RhPtZLt' #http://115.29.8.74/app/trunkowner.apk
+                url = '轻松找到回程车！http://t.cn/RhlRVXa QQ群:215785844' #http://www.tthcc.cn/msg_app.html?type=owner 
             else:
-                url = "出一趟车，赚两次钱！http://t.cn/RhP5DqN"  #http://115.29.8.74/app/trunkdriver.apk
+                url = "出一趟车，赚两次钱！http://t.cn/RhlRIzD QQ群:215785844"   # http://www.tthcc.cn/msg_app.html?type=driver 
 
-            # print nickname2
-            # print nickname2.encode("utf-8")
-            # print unquote(nickname2.encode("utf-8"))
-
-            # print "_____"
-            # if nickname is None:
             nickname = "朋友"
-            # print type(nickname)
-            # else:
-            #     nickname = unquote(nickname.encode("utf-8"))
 
-            print "nickname after encoding", nickname
+            # print "nickname after encoding", nickname
             regcodeObject.send(phonenum,url,nickname)
             self.write(DataProtocol.getSuccessJson())
         else:
@@ -646,6 +637,57 @@ class CheckCodeHandler(BaseHandler):
         else:
             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             trunkserverLog("CheckCodeHandler param error")
+
+class RegCodeFindPasswordHandler(BaseHandler):
+    def get(self):
+        phonenum = self.get_argument("phonenum",None)
+        #TODO 验证手机格式
+        if not phonenum is None:
+            #发送短信
+            regcodeObject = YunPianFindPasswordCode()
+            #TODO 这里可能会出错，当短信不够或者服务出错的情况，需要补充逻辑
+            regcodeStr = regcodeObject.sendRegCode(phonenum)
+            print regcodeStr
+
+            service = self.getDbService()
+            service.addRegCode(phonenum,regcodeStr)
+            self.write(DataProtocol.getSuccessJson())
+        else:
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            trunkserverLog("RegCodeHandler param error")
+
+class UpdatePasswordHandler(BaseHandler):
+    # @auth
+    @coroutineDebug
+    @coroutine
+    def post(self):
+        phonenum = self.get_argument("phonenum",None)
+        regcode = self.get_argument("regcode",None)
+        newPassword = self.get_argument("password",None)
+
+        print "UpdatePasswordHandler"
+        service = self.getDbService()
+        if not phonenum is None and not regcode is None:
+            if service.hasUser(phonenum):
+                ret = service.checkCode(phonenum,regcode)
+
+                if ret:
+                    user = yield User.objects({"phoneNum" : phonenum}).limit(1).to_list(1)
+                    print user[0]
+                    user[0]["psw"] = encryptPassword(newPassword)
+                    yield user[0].save();
+
+                    print user[0]
+                    self.write(DataProtocol.getSuccessJson({"ret":ret},"json"))
+                else:
+                    self.write(DataProtocol.getSuccessJson({"ret":ret},"json"))
+            else:
+                self.write(DataProtocol.getJson(DataProtocol.USER_EXISTED_ERROR,"用户不存在"))
+                
+        else:
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            # trunkserverLog("CheckCodeHandler param error")
+
 
 ####################### 验证码相关 END #######################
 
@@ -674,6 +716,8 @@ class AppDownloadHandler(BaseHandler):
             with open("dist/app/trunkeveryday.apk", "r") as f:
                 self.write(f.read())
 
+
+
 settings = {
     # "debug":True,
     "login_url":"/login",
@@ -689,6 +733,7 @@ application = tornado.web.Application([
     (r"/api/admin/logout", UserLogoutHandler),
     (r"/api/admin/register", RegisterHandler),
     (r"/api/admin/logout", LogoutHandler),
+
     (r"/api/bill/get", GetUserBillsHandler),
     (r"/api/bill/send", SendBillHandler),
     (r"/api/bill/delete", DeleteBillHandler),
@@ -697,16 +742,23 @@ application = tornado.web.Application([
     (r"/api/bill/invite", InviteBillHandler),
     (r"/api/bill/conn", ConnBillHandler),
     (r"/api/bill/recomend", GetRecommendBillsHandler),
+    (r"/api/bill/get_recomend_bills", GetRecommendBillsDataHandler),
     (r"/api/bill/call", BillCallHandler),
     (r"/api/bill/visited", GetVisitedBillHandler),
     (r"/api/bill/history", GetHistoryBillHandler),
+    (r"/api/bill/record", GetRecordBillHandler),
     (r"/api/bill/pick", PickBillHandler),
     (r"/api/bill/confirm", ConfirmBillReqHandler),
     (r"/api/bill/finish_hbill", FinishHistoryBillHandler),
     (r"/api/bill/confirm_hbill", ConfirmHistoryBillHandler),
     (r"/api/bill/get_one", GetBillHandler),
+    (r"/api/bill/get_bills", GetBillsHandler),
+    (r"/api/bill/analysis", BillAnayliseHandler),
+    (r"/api/bill/analysis_num", BillAnalysePhoneNumHandler),
+
     (r"/api/comment", CommentHandler),
     (r"/api/comment/text", CommentTextHandler),
+
     (r"/api/user", UserHanlder),
     (r"/api/user/update", UpdateUserHandler),
     (r"/api/user/setting", UserSettingHandler),
@@ -719,12 +771,19 @@ application = tornado.web.Application([
     (r"/api/location/get", GetUserLocationHandler),
     (r"/api/regcode",RegCodeHandler),
     (r"/api/regcode/check",CheckCodeHandler),
-    (r"/api/get_match",getMatchBillHandler),
+
+    (r"/api/get_match",getMatchBillMapHandler),
+    (r"/api/get_match_bills",getMatchBillHandler),
+
     (r"/api/regcode/aftercalled",RegCodeAfterCalledHandler),
+    (r"/api/regcode/findPassword",RegCodeFindPasswordHandler),
+    (r"/api/user/updatePassword",UpdatePasswordHandler),
+
     (r"/api/regular/get", GetRegularHandler),
     (r"/api/regular/add", RegularHandler),
     (r"/api/regular/add_route", AddRouteHandler),
     (r"/api/regular/remove", RemoveRegularHandler),
+
 
     (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
 ], **settings)
@@ -741,9 +800,9 @@ def _quit_if_ioloop_is_empty():
 
 
 def gracefullyShutDown(signum, frame):
-
+    print "ready to shot down"
+    jobsStop()
     server.stop()
-    tornado.ioloop.PeriodicCallback(_quit_if_ioloop_is_empty, 500, io_loop=tornado.ioloop.IOLoop.instance()).start()
 
 
 def writePid():
@@ -753,16 +812,16 @@ def writePid():
     fileHandle.write(str(os.getpid()))
     fileHandle.close()
 
-@coroutineDebug
-@coroutine
-def initAppConf():
-    conf = yield Config.objects().one()
-    if not conf:
-        conf = Config()
-        conf.currUse = True
-        yield conf.save()
-
-    AppConf.conf = conf
+# @coroutineDebug
+# @coroutine
+# def initAppConf():
+#     conf = yield Config.objects().one()
+#     if not conf:
+#         conf = Config()
+#         conf.currUse = True
+#         yield conf.save()
+#
+#     AppConf.conf = conf
 
 writePid()
 
@@ -771,13 +830,13 @@ if __name__ == "__main__":
     connection = connect("mongodb://"+options.dbuser+":"+options.dbpsw+"@"+options.dbaddr+"/"+options.dbname)
 
     server = HTTPServer(application, xheaders=True)
-    server.listen(options.port)
+    server.listen(app_server_port)
 
-    jobsManager = JobsManager()
     #初始化billmatchmap，建立一个单子匹配的map
     BillMatchController().initFromDB()
+    initBillAnalysis()
 
-    msJobs = tornado.ioloop.PeriodicCallback(jobsManager.update, 100)
+    msJobs = tornado.ioloop.PeriodicCallback(jobsUpdate, 100)
     msJobs.start()
 
     # minJobs = tornado.ioloop.PeriodicCallback(jobsEveryMin, 10*1000)
@@ -789,9 +848,9 @@ if __name__ == "__main__":
     # job = tornado.ioloop.PeriodicCallback(jobsEvery5Hours, 5*60*60*1000)
     # job.start()
 
-    # signal.signal(signal.SIGINT, gracefullyShutDown)
-    # signal.signal(signal.SIGTERM, gracefullyShutDown)
-    # signal.signal(signal.SIGQUIT, gracefullyShutDown)
+    signal.signal(signal.SIGINT, gracefullyShutDown)
+    signal.signal(signal.SIGTERM, gracefullyShutDown)
+    signal.signal(signal.SIGQUIT, gracefullyShutDown)
 
     tornado.ioloop.IOLoop.instance().start()
 

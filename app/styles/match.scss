@@ -19,3 +19,20 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 .data-list{
     width: 100%;
 }
+
+.match-item{
+    background: #eee;
+}
+
+.select-item{
+    background: #5bc0de;
+}
+.send-message{
+    display: none;
+}
+.match-item .send-message{
+    display: block !important;
+}
+.match-me-item{
+    background: #eee;
+}

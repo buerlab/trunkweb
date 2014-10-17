@@ -28,7 +28,9 @@ class Bill(Document):
 
     receiver = StringField(default="")
     IDNumber = StringField(default="")
+    #sendTime指信息发布时间，addTime指信息添加到数据库的时间，默认情况下两者是相等的
     sendTime = TimeStampField()
+    addTime = TimeStampField(innerData=True)
     visitedTimes = IntField(default=0)
     visitedChange = BooleanField(default=False, innerData=True)
 
@@ -36,6 +38,7 @@ class Bill(Document):
 
     price = FloatField(default=0.0, min_value=0)
     weight = FloatField(default=0.0, min_value=0)  #吨
+    volume = FloatField(default=0.0, min_value=0)  #立方米
     material = StringField(default="")
 
     trunkType = StringField(default="")
@@ -91,8 +94,14 @@ class User(Document):
     phoneNum = StringField(regex="^[0-9]*$", default="")
     username = StringField()
     psw = StringField(innerData=True)
-
     bonus = IntField(default=0)
+
+    wechatId = StringField(innerData=True)
+    wechatState = DictField()
+    #微信另开一个phoneNum，为了不冲突之前app的用户（之前的根据phoneNum的唯一性来判断）
+    wechatPhoneNum = StringField()
+    #是否第一次完成称呼电话等基本资料的初始化
+    hasInit = BooleanField()
 
     regtime = TimeStampField()
     bills = ListField(StringField)
@@ -208,22 +217,20 @@ class User(Document):
         return all the on wait bill and put the invalid bill into record.
         :return:
         '''
-        if self.currType and self.getAttr("Bills"):
-            billsReturn, billsRemove, billIds = [], [], self.getAttr("Bills")
-            for bId in billIds:
-                bill = yield Bill.get(bId)
-                if bill.state == BillState.WAIT:
-                    billsReturn.append(bill)
-                else:
-                    billsRemove.append(bId)
-            if billsRemove:
-                for removeId in billsRemove:
-                    self.getAttr("BillsRecord").append(removeId)
-                    billIds.remove(removeId)
-                yield self.save()
-            raise Return(billsReturn)
-        else:
-            raise Return([])
+        billsReturn, billsRemove = [], []
+        billIds = self.getAttr("Bills") if self.currType else self.driverBills+self.ownerBills
+        for bId in billIds:
+            bill = yield Bill.get(bId)
+            if bill.state == BillState.WAIT:
+                billsReturn.append(bill)
+            else:
+                billsRemove.append(bId)
+        if billsRemove:
+            for removeId in billsRemove:
+                self.getAttr("BillsRecord").append(removeId)
+                billIds.remove(removeId)
+            yield self.save()
+        raise Return(billsReturn)
 
     @coroutineDebug
     @coroutine
@@ -325,6 +332,22 @@ class User(Document):
         return None
 
 
+class WCUser(Document):
+    db_alias = "trunkDb"
+    col_name = "wechatUserCol"
+
+    level = StringField(default=UserLevel.NORMAL, innerData=True)
+    nickName = StringField()
+    phoneNum = StringField(regex="^[0-9]*$", default="")
+    username = StringField()
+    regtime = TimeStampField()
+    userType = StringField()
+
+    homeLocation = StringField(default="")
+    trunks = ListField(DictField())
+
+
+
 class HistoryBill(Document):
     db_alias = "trunkDb"
     col_name = "historyCol"
@@ -387,7 +410,7 @@ class Config(Document):
     locationCacheHours = IntField(default=10)
 
     currUse = BooleanField(default=False)
-    recommendBillsReturnOnce = IntField(default=10)
+    recommendBillsReturnOnce = IntField(default=50)
     #出发地相对于目的地的权重
     fromAddrWeight = FloatField(default=1.5)
     #发单与浏览单from to吻合 10,000,000
@@ -445,7 +468,6 @@ class Regular(Document):
     db_alias = "trunkDb"
     col_name = "regularCol"
 
-
     nickName = StringField()
     phoneNum = StringField()
     userType = StringField()
@@ -461,3 +483,48 @@ class Regular(Document):
     # route dict should be like below:
     # {"fromAddr":"", "toAddr":"", "probability":1}
     routes = ListField(DictField())
+
+
+class BillMatchMsgRecord(Document):
+    db_alias = "trunkDb"
+    col_name = "billMatchMsgRecordCol"
+
+    sendTo = StringField()
+    recPhoneNum = StringField()
+    fromAddr = StringField()
+    toAddr = StringField()
+    nickName = StringField()
+    type = StringField()
+    billId = ObjectIdField()
+    comment = StringField()
+    addTime = TimeStampField()
+
+
+class SendMsgRecord(Document):
+    db_alias = "trunkDb"
+    col_name = "sendMsgRecordCol"
+
+    billId = StringField
+    sendTime = TimeStampField()
+    validTimeSec = IntField()
+    sendTo = StringField()
+    phonenum = StringField()
+    nickname = StringField()
+    fromAddr = StringField()
+    toAddr = StringField()
+    msgType = StringField()
+
+
+class RawBillMsg(Document):
+    db_alias = "trunkDb"
+    col_name = "toAddMessageCol"
+
+    phonenum = StringField()
+    nickname = StringField()
+    groupname = StringField()
+    #微信用户的userid
+    wcUserId = ObjectIdField()
+    wechatId = StringField()
+    state = StringField(innerData=True)
+    content =StringField()
+    time = IntField()

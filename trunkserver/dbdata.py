@@ -10,6 +10,7 @@ from  jpush.RegCodeService import RegCode
 import md5
 import calendar
 from datetime import datetime
+import re 
 
 service = DbService().connect()
 
@@ -296,6 +297,7 @@ def getAllLocation():
 # def encryptPassword(psw):
 #     return md5.new("hello"+ psw + "world").hexdigest()
 
+# print encryptPassword("121314")
 # service.addUser("admin", "12345678900", encryptPassword("hust430074"))  #id = 53e9cd5915a5e45c43813d1c
 
 # service.doneToAddMessage("53ec7a307938ee66168e266f")
@@ -336,5 +338,17 @@ def getAllLocation():
 # for i in service.mongo.trunkDb.toAddMessageCol.find(condition):
 #     service.mongo.trunkDb.toAddMessageCol.update(condition,{"$set": {"state":"wait"} })
 
-for item in service.mongo.trunkDb.addedMessageCol.find({"editor":"teddywu","state":"refuse"}):
-    print item
+# for item in service.mongo.trunkDb.addedMessageCol.find({"editor":"teddywu","state":"refuse"}):
+#     print item
+
+for item in service.mongo.trunkDb.grabPhonenumCol.find():
+
+    if item.has_key("phonenum"):
+        phonenum = item["phonenum"]
+        if re.match("\d{11}",phonenum):
+            item = {
+                "phonenum" : item["phonenum"],
+                "content" : item["content"],
+                "groupname" : item["groupname"]
+            }
+            service.mongo.trunkDb.grabPhonenumCol.update({"phonenum":phonenum}, item,True)

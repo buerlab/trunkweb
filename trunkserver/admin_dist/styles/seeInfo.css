@@ -7671,3 +7671,14 @@ td.visible-print {
 #addedStatTable th {
   min-width: 100px;
 }
+
+/* line 39, ../../app/styles/seeInfo.scss */
+#summaryStatCanvasCantainer {
+  overflow: scroll;
+}
+
+/* line 43, ../../app/styles/seeInfo.scss */
+.phone-list {
+  max-height: 400px;
+  overflow: scroll;
+}

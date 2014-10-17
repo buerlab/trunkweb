@@ -178,9 +178,12 @@ $(function(){
 
 
 
-
+    $("#groupStatMenu").click(function(){
+        debugger;
+        getGroupData();
+    });
     // getGroupDataTest();
-    getGroupData();
+    // getGroupData();
      /******************
       * summary 数据总览  end
       *****************/  

@@ -775,8 +775,11 @@ $('.typeahead').typeahead({
                 userType : $this.parents().data("usertype")
             }
 
+            debugger
+
+
             var jqxhr = $.ajax({
-                url: "http://115.29.8.74:9289/addedmessage/delete",
+                url: "/addedmessage/delete",
                 data: d,
                 type: "POST",
                 dataType: "json",
@@ -814,7 +817,7 @@ $('.typeahead').typeahead({
                     },
 
                     error: function(data) {
-                        errLog && errLog("addedmessage/delete error");
+                        errLog && errLog("http://115.29.8.74:9288/api/bill/remove error");
                     }
                 });
             }

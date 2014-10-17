@@ -15,7 +15,10 @@ from dbmodels import *
 from jpush.JPushService import *
 from motor import Op
 from utils import *
+import json
 from billmatchcontroller import BillMatchController
+# from billrecommend import getRecomendBills
+from billanalysis import BillAnalysis
 
 
 historyRetrunFragment = 5
@@ -50,17 +53,21 @@ class SendBillHandler(BaseHandler):
     }
 
     optionalParams = {
+        "sender": unicode,
+        "senderName":unicode,
+        "phoneNum":unicode,
+
         "billTime": unicode,
         "validTimeSec":unicode,
         "source":unicode,
+        "sendTime":unicode,
 
         "passAddr":unicode,
-        "senderName":unicode,
-        "phoneNum":unicode,
         "comment":unicode,
         "IDNumber": unicode,
         "price": unicode,
         "weight": unicode,
+        "volume": unicode,
         "material": unicode,
 
         "trunkType": unicode,
@@ -74,26 +81,32 @@ class SendBillHandler(BaseHandler):
     @coroutine
     @addAllowOriginHeader
     def onCall(self, **kwargs):
-        print "get send bill:", kwargs
+        mylog.getlog().info(getLogText("--send bill, get argument: ", kwargs))
         if kwargs:
             bill = Bill.from_db(kwargs)
             if bill:
-                bill.sendTime = time.time()
+                now = time.time()
+                bill.sendTime, bill.addTime = bill.sendTime or now, now
                 bill.state = BillState.WAIT
                 userId = self.getCurrUserId()
+                print "userid"
                 if userId:
-                    user = yield self.getUser()
+                    user = (yield self.getUser()) if not bill.sender else (yield User.get(bill.sender, matchUserType(bill.billType)))
                     if user and user.currType == matchUserType(bill.billType):
                         # saveBill = yield user.sendBill(bill)
-                        bill.sender = user.id
+                        bill.sender = bill.sender or user.id
                         bill.senderName = bill.senderName or user.nickName
                         bill.phoneNum = bill.phoneNum or user.phoneNum
-                        yield bill.save()
-                        user.getAttr("Bills").append(bill.id)
-                        yield user.save()
-                        if bill:
+                        saveResult = yield bill.save()
+
+                        if saveResult:
+                            user.getAttr("Bills").append(bill.id)
+                            yield user.save()
+
+                            mylog.getlog().info(getLogText("--send bill success~~~"))
                             #告诉matchcontroller有新单发送，更新matchmap
                             BillMatchController().sendBill(bill)
+
                             self.finish(DataProtocol.getSuccessJson(bill.to_client()))
                         else:
                             self.finish(DataProtocol.getJson(DataProtocol.DB_ERROR))
@@ -109,6 +122,8 @@ class SendBillHandler(BaseHandler):
         else:
             self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
         return
+
+
 
 class GetUserBillsHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "HEAD", "POST", r"DELETE", "PATCH", "PUT", "OPTIONS")
@@ -127,6 +142,17 @@ class GetUserBillsHandler(BaseHandler):
         returnBills = [b.to_client() for b in bills]
         print "---return ",len(returnBills)," bills"
         self.write(DataProtocol.getSuccessJson(returnBills))
+
+
+# class GetUserRecordHandler(BaseHandler):
+#
+#
+#
+#     @auth
+#     @coroutineDebug
+#     @coroutine
+#     def onCall(self, *args, **kwargs):
+
 
 
 class DeleteBillHandler(BaseHandler):
@@ -150,6 +176,7 @@ class RemoveBillHanlder(BaseHandler):
         "billid":unicode
     }
 
+    #讲单子变为cancelled，如果user有效，从user中得billcol转移到billrecord
     @auth
     @coroutineDebug
     @coroutine
@@ -160,12 +187,14 @@ class RemoveBillHanlder(BaseHandler):
         bill = yield Bill.get(billid)
         user = yield self.getUser()
 
-        if bill.id in user.getAttr("Bills"):
+        if bill:
             bill.state = BillState.CANCELLED
             yield bill.save()
-            user.getAttr("Bills").remove(bill.id)
-            user.getAttr("BillsRecord").append(bill.id)
-            yield user.save()
+            if user and user.currType and bill.id in user.getAttr("Bills"):
+                user.getAttr("Bills").remove(bill.id)
+                user.getAttr("BillsRecord").append(bill.id)
+                yield user.save()
+
             BillMatchController().removeBill(bill)
             self.finish(DataProtocol.getSuccessJson())
         else:
@@ -256,45 +285,339 @@ class ConnBillHandler(BaseHandler):
             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
             self.finish()
 
-# this function is dulpricated!
-class RecomendBillHandler(BaseHandler):
+#------------------------------
+#RECOMEND
+#------------------------------
 
-    @auth
-    def post(self):
-        mylog.getlog().info(getLogText("get recomend bills"))
-        service = self.getDbService()
-        userid = self.getCurrUserId()
-        usertype = self.getUserType()
-        if usertype and service:
-            user = service.getUserBaseData(userid)
-            query = {}
-            query["billType"] = "goods" if usertype == UserType.DRIVER else "trunk"
-            mylog.getlog().info(getLogText("find:", query["billType"]))
-            bills = service.findBills(query)
+#获取推荐格式单子给客户端
+@coroutineDebug
+@coroutine
+def getRecomendBills(bills):
+    returnData, sendedUsers = [], []
 
-            billusers = []
-            for bill in bills:
-                service.visitBill(bill["id"])
-                senderId = bill["sender"]
-                #hack!!!!
-                bill["sender"] = str(bill["sender"])
-                if not senderId in billusers:
-                    billusers.append(senderId)
+    for bill in bills:
+            bill.visitedTimes += 1
+            bill.visitedChange = True
+            yield bill.save()
+            senderId, sender = bill.sender, None
 
-            #push to user whose bills have visited.
-            for item in billusers:
-                if service.hasUserOfId(item):
-                    sender = service.getUserBaseData(item)
-                    if "jpushId" in sender:
-                        JPushMsgToId(sender["jpushId"], createprotocol(str(sender["_id"]), JPushProtocal.BILL_VISITED))
-                else:
-                    print "billuser don't exist!!"
+            if senderId:
+                sender = yield User.get(senderId, matchUserType(bill.billType))
+                if sender:
+                    #发送给单子拥有者，更新单子访问次数
+                    if not senderId in sendedUsers:
+                        if sender.getAttr("JPushId"):
+                            print "push to", sender.getJPushId(bill.billType), "sendertype:", sender.currType
+                            JPushMsgToId(sender.getAttr("JPushId"), createprotocol(str(sender.id), JPushProtocal.BILL_VISITED), sender.currType)
+                        sendedUsers.append(senderId)
 
-            self.write(DataProtocol.getSuccessJson(bills))
-        elif not usertype:
-            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
-        else:
-            self.write(DataProtocol.getJson(DataProtocol.DB_ERROR))
+            #如果是管理员的账号或者没有发送者的单子，利用已有信息fake一个
+            if (sender and sender.level == UserLevel.MANAGER) or ((not sender) and bill.senderName):
+                sender = User()
+                sender.currType = matchUserType(bill.billType)
+                sender.nickName = bill.senderName
+                #fake的用户不能追踪位置
+                sender.setAttr("Settings", {"locate":False})
+
+            if sender:
+                returnData.append(createRecommendBill(sender.to_user_base_data(), bill.to_client(), bill.billType))
+
+    raise Return(returnData)
+
+
+def mergeBills(bills):
+        billIds, billsToRemove = [], []
+        for bill in bills:
+            if bill.id in billIds:
+                billsToRemove.append(bill)
+            else:
+                billIds.append(bill.id)
+        for bill in billsToRemove:
+            bills.remove(bill)
+
+#基础查询
+def getQueryFromBase(userid, findtype, excludeBills, queryDict):
+    query = {"billType": findtype, "state":BillState.WAIT, "sender":{"$ne":userid}}
+    #排除excludeBills里面的单子
+    if len(excludeBills) > 0:
+        query.update({"id":{"$nin":[bill.id for bill in excludeBills]}})
+    query.update(queryDict)
+    return query
+
+
+#获取货单的重量与货车载重匹配的条件
+def getLoadMatchCondition(user, bill=None):
+    if user.currType == UserType.DRIVER and user.getCurrTruck():
+        return {"weight":{"$lte":float(user.getCurrTruck()["load"])}}
+    elif user.currType == UserType.OWNER and bill:
+        return {"trunkLoad":{"$gte":bill.weight}}
+    return {}
+
+def getAddrMatchReg(addr):
+    return re.compile(r"^"+addr)
+
+#获取可推荐的单子
+@coroutineDebug
+@coroutine
+def getBillsToRecomend(user, config):
+    returnLimit = config.recommendBillsReturnOnce
+    bills, i = [], 0
+    userBills = yield user.getBills()
+    print "usertype:" + user.currType
+    recordBills = yield extractBillsFromIds(user.getAttr("BillsRecord"))
+    while len(bills) < returnLimit:
+        try:
+            if i == 0:
+                bills.extend((yield getAddrMatchBill(userBills)))
+            elif i == 1:
+                bills.extend((yield getAddrNearBill(user, bills, userBills, returnLimit)))
+            elif i == 2:
+                bills.extend((yield getRecordMatchBill(user, bills, recordBills, returnLimit)))
+            elif i == 3:
+                bills.extend((yield getLocationMatchBill(user, bills, getCity(user.homeLocation), returnLimit)))
+            elif i == 4:
+                bills.extend((yield getLocationMatchBill(user, bills, getProv(user.homeLocation), returnLimit)))
+            else:
+                break
+
+        except Exception, e:
+            print e.message
+            break
+        mergeBills(bills)
+        i += 1
+
+    sortedByWeight = sorted([(bill, calWeight(config, user, userBills, recordBills, bill)) for bill in bills],\
+                            key=lambda item:item[1], reverse=True)
+    sortedSlice = sortedByWeight[0:returnLimit]
+    returnBills = [b[0] for b in sortedSlice]
+    raise Return(returnBills)
+
+
+@coroutineDebug
+@coroutine
+def getAddrMatchBill(bills):
+    '''
+    根据用户当前有效的单据查找from，to都匹配的对应单据
+    :param user:
+    :param excludeBills: 之前已经找到的单据，后面查找时候就要排除掉
+    :param bills:
+    :return:
+    '''
+    if bills:
+        returnBills = []
+        #
+        # try:
+        #     conditions = []
+        #     for bill in bills:
+        #         cond = {"fromAddr":bill.fromAddr, "toAddr":bill.toAddr}
+        #         #载重与货物重量匹配的条件
+        #         cond.update(self.getLoadMatchCondition(user, bill))
+        #         conditions.append(cond)
+        #     limitLength = self.config.recommendBillsReturnOnce
+        #     returnBills = yield Bill.objects(self.getQueryFromBase(user, excludeBills, {"$or":conditions}))\
+        #                         .limit(limitLength).to_list(limitLength)
+        # except Exception, e:
+        #     print "QUERY ERROR :", e.message
+
+
+        # 遍历用户正在等待中的单子
+        for bill in bills:
+            matchBills = BillMatchController().getMatchBills(bill)
+            for bId in matchBills:
+                if bId:
+                    matchBill = yield Bill.get(bId)
+                    #如果是车单，用户当前车辆的载重小于货重，或者 货单， 货重大于车单的载重就排除
+                    if matchBill:
+                        returnBills.append(matchBill)
+
+        mylog.getlog().info(getLogText("----get addr match", len(returnBills)))
+        raise Return(returnBills)
+    else:
+        raise Return([])
+
+
+@coroutineDebug
+@coroutine
+def getAddrNearBill(user, excludeBills, bills, returnLimit):
+    '''
+    根据用户当前有效的单据查找from，to都在同一个城市的对应单据
+    :param user:
+    :param excludeBills: 之前已经找到的单据，后面查找时候就要排除掉
+    :param bills:
+    :return:
+    '''
+    if bills:
+        conditions = []
+        for bill in bills:
+            #获取单子上面的城市名
+            fromCity, toCity = getCity(bill.fromAddr), getCity(bill.toAddr)
+            cond = {"fromAddr": re.compile(r"^"+fromCity), "toAddr":re.compile(r"^"+toCity)}
+            cond.update(getLoadMatchCondition(user, bill))
+            conditions.append(cond)
+        findType = matchBillType(oppsiteUserType(user.currType))
+        query = getQueryFromBase(str(user.id), findType, excludeBills, {"$or":conditions})
+        returnBills = yield Bill.objects(query).limit(returnLimit)\
+                                        .to_list(returnLimit)
+
+        mylog.getlog().info(getLogText("----get addr near", len(returnBills)))
+        raise Return(returnBills)
+    else:
+        raise Return([])
+
+@coroutineDebug
+@coroutine
+def getRecordMatchBill(user, excludeBills, recordBills, returnLimit):
+    '''
+    根据用户以往的发送记录，计算出频率排在前面的几个城市，推送
+    :param user:
+    :param excludeBills:
+    :param recordBills:
+    :return:
+    '''
+    if recordBills:
+        recordFrom = [bill.fromAddr for bill in recordBills]
+        recordTo = [bill.toAddr for bill in recordBills]
+        fromFreq = addrsAnalysis(recordFrom)
+        toFreq = addrsAnalysis(recordTo)
+        #取出频率至多前三位的城市
+        fromCities, toCities = fromFreq["city"].keys()[0:3], toFreq["city"].keys()[0:3]
+
+        query = {"fromAddr":{"$in":fromCities}, "toAddr":{"$in":toCities}}
+        query.update(getLoadMatchCondition(user))
+
+        findType = matchBillType(oppsiteUserType(user.currType))
+        bills = yield Bill.objects(getQueryFromBase(str(user.id), findType, excludeBills, query))\
+                            .limit(returnLimit).to_list(returnLimit)
+
+        mylog.getlog().info(getLogText("----get addr record", len(bills)))
+        raise Return(bills)
+    else:
+        raise Return([])
+
+
+@coroutineDebug
+@coroutine
+def getLocationMatchBill(user, excludeBills, location, returnLimit):
+    '''
+    根据用户当前所在的城市推送相同出发地的回程单
+    :param user:
+    :param excludeBills:
+    :param location:
+    :return:
+    '''
+    try:
+        query = {"fromAddr":re.compile(r"^"+location)}
+        query.update(getLoadMatchCondition(user))
+
+        findType = matchBillType(oppsiteUserType(user.currType))
+        bills = yield Bill.objects(getQueryFromBase(str(user.id), findType, excludeBills, query))\
+                                    .limit(returnLimit).to_list(returnLimit)
+    except Exception, e:
+        print "lOCAL EROOR:", e.message
+
+    mylog.getlog().info(getLogText("----get location%s match"%location, len(bills)))
+    raise Return(bills)
+
+def calWeight(config, user, userBills, recordBills, bill):
+    weight = 0
+    weight += evalBillMatchWeight(config, userBills, bill)
+    weight += evalLocationWeight(config, user, bill)
+    weight += evalBillRecordWeight(config, recordBills, bill)
+    weight += evalTimeWeight(config, bill)
+    weight += evalStarWeight(config, user, bill)
+    weight += evalTrunkVerifiedWeight(config, user)
+    weight += evalTrunkPicVerifiedWeight(config, user)
+    weight += evalDriverLiscenseVerifiedWeight(config, user)
+    weight += evalIDVerifiedWeight(config, user)
+    return weight
+
+
+def evalBillMatchWeight(config, waitBills, bill):
+    '''
+    正在发送单据里有出发目的均匹配的
+    :param historyBills:
+    :param bill:
+    :return:
+    '''
+    for userBill in waitBills:
+        fromComp, toComp = addr_compare(userBill.fromAddr, bill.fromAddr), addr_compare(userBill.toAddr, bill.toAddr)
+        if fromComp > AddrComp.SAME_PROV and toComp > AddrComp.SAME_PROV:
+            return config.billMatchWeight+(fromComp*config.fromAddrWeight+toComp)*config.billMatchRatioWeight
+    return 0
+
+def evalLocationWeight(config, user, bill):
+    fromComp = addr_compare(user.homeLocation, bill.fromAddr)
+    if fromComp > AddrComp.SAME_PROV:
+        return config.homeLocationWeight+fromComp*config.homeLocationRatioWeight
+    return 0
+
+def evalBillRecordWeight(config, recordBills, bill):
+    if len(recordBills) > 0:
+        recordFrom = [bill.fromAddr for bill in recordBills]
+        recordTo = [bill.toAddr for bill in recordBills]
+        fromFreq = addrsAnalysis(recordFrom)
+        toFreq = addrsAnalysis(recordTo)
+
+        fromPoint = calSingleAddrFreqPoint(fromFreq, bill.fromAddr)
+        toPoint = calSingleAddrFreqPoint(toFreq, bill.toAddr)
+        total = fromPoint*config.fromAddrWeight+toPoint
+        return config.recordBillWeight+total*config.recordBillRatioWeight if total>0 else 0
+    return 0
+
+def calSingleAddrFreqPoint(addrsFreq, addr):
+    if addr in addrsFreq["region"]:
+        return 2 + addrsFreq["region"][addr]
+    elif getCity(addr) in addrsFreq["city"]:
+        return 1 + addrsFreq["city"][getCity(addr)]
+    elif getProv(addr) in addrsFreq["prov"]:
+        return addrsFreq["prov"][getProv(addr)]
+    return 0
+
+def evalTimeWeight(config, bill):
+    '''
+    分段函数， 有效期内得到全分，有效期之前减函数
+    :param user:
+    :param bill:
+    :return:
+    '''
+    if bill.billTime:
+        delta = datetime.fromtimestamp(bill.billTime) - datetime.now()
+        deltaSec = delta.total_seconds()
+        if deltaSec > 0:
+            return config.timeBaseWeight - int(deltaSec/3600)*config.timePerHourWeight
+        elif abs(deltaSec) < bill.validTimeSec:
+            return config.timeBaseWeight
+    elif bill.sendTime:
+        delta = datetime.now() - datetime.fromtimestamp(bill.sendTime)
+        deltaSec = delta.total_seconds()
+        if deltaSec > 0:
+            return config.timeBaseWeight - int(deltaSec/3600)*config.timePerHourWeight
+
+    return 0
+
+def evalStarWeight(config, user, bill):
+    stars = user.getStars(bill.getContraryType()) or 0
+    return stars*config.starWeight
+
+def evalTrunkVerifiedWeight(config, user):
+    for trunk in user.trunks:
+        if trunk["isUsed"] and trunk["trunkLicenseVerified"]:
+            return config.trunkLicenseVerifiedWeight
+    return 0
+
+def evalTrunkPicVerifiedWeight(config, user):
+    for trunk in user.trunks:
+        if trunk["isUsed"] and "trunkPicFilePaths" in trunk and trunk["trunkPicFilePaths"]:
+            return config.trunkPicVerifiedWeight
+    return 0
+
+def evalDriverLiscenseVerifiedWeight(config, user):
+    return config.driverLiscenseVerifiedWeight if user.driverLicenseVerified else 0
+
+def evalIDVerifiedWeight(config, user):
+    return config.IDVerifiedWeight if user.IDNumVerified else 0
+
+
 
 
 class GetRecommendBillsHandler(BaseHandler):
@@ -304,7 +627,13 @@ class GetRecommendBillsHandler(BaseHandler):
     userHistoryBills = None
     recordBills = []
 
-    billsNumLimit = 1000
+    #每次返回的单据数量
+    returnBillsNum = 3
+
+    #兼容前面的一些版本，临时做得format，有的话返回最新的格式的数据
+    optionalParams = {
+        "format": unicode
+    }
 
     @auth
     @coroutineDebug
@@ -325,79 +654,29 @@ class GetRecommendBillsHandler(BaseHandler):
             bill = yield Bill.get(id)
             self.recordBills.append(bill)
 
-        bills = yield self.getRecomendBills(user)
+        bills = yield getBillsToRecomend(user, self.config)
 
-        sortBills = sorted([(bill, self.calWeight(user, bill)) for bill in bills], key=lambda item:item[1], reverse=True)
-        #slice
-        sortBills = sortBills[0:self.config.recommendBillsReturnOnce]
-        sortBills = [b[0] for b in sortBills]
-        returnData = []
+        if "format" in kwargs and kwargs["format"] == "ids":
+            #slice
+            sortBills, returnBillIds = bills[0:self.returnBillsNum], []
+            returnBills = yield getRecomendBills(sortBills)
+            if len(bills)>self.returnBillsNum:
+                returnBillIds = [str(b.id) for b in bills[self.returnBillsNum:len(bills)]]
 
-        tempUsers = []
-        for bill in sortBills:
-            bill.visitedTimes += 1
-            bill.visitedChange = True
-            yield bill.save()
-            senderId, sender = bill.sender, None
-            if senderId:
-                sender = yield User.get(senderId, matchUserType(bill.billType))
-                if sender:
-                    #发送给单子拥有者，更新单子访问次数
-                    if not senderId in tempUsers:
-                        if sender.getAttr("JPushId"):
-                            print "push to", sender.getJPushId(bill.billType), "sendertype:", sender.currType
-                            JPushMsgToId(sender.getAttr("JPushId"), createprotocol(str(sender.id), JPushProtocal.BILL_VISITED), sender.currType)
-                        tempUsers.append(senderId)
-            #如果是管理员的账号或者没有发送者的单子，利用已有信息fake一个
-            if (sender and sender.level == UserLevel.MANAGER) or ((not sender) and bill.senderName):
-                sender = User()
-                sender.currType = matchUserType(bill.billType)
-                sender.nickName = bill.senderName
-                #fake的用户不能追踪位置
-                sender.setAttr("Settings", {"locate":False})
+            returnData = {"bills":returnBills, "ids":returnBillIds}
+        else:
+            returnData = yield getRecomendBills(bills)
 
-            if sender:
-                returnData.append(createRecommendBill(sender.to_user_base_data(), bill.to_client(), bill.billType))
 
-        #if we want to find trucks then return some local drivers.
-        if self.findtype == BillType.TRUNK:
-            gap = self.config.recommendBillsReturnOnce - len(returnData)
-            if gap > 0:
-                localBills = yield self.getLocalTruckBill(getCity(user.homeLocation), gap)
-                returnData.extend(localBills)
+            # if we want to find trucks then return some local drivers.
+            if self.findtype == BillType.TRUNK:
+                gap = self.config.recommendBillsReturnOnce - len(returnData)
+                if gap > 0:
+                    localBills = yield self.getLocalTruckBill(getCity(user.homeLocation), gap)
+                    returnData.extend(localBills)
 
-        print "recommend bills return:", len(returnData)
-
+        mylog.getlog().info(getLogText("recommend bills return:", len(bills)))
         self.finish(DataProtocol.getSuccessJson(returnData))
-
-    @coroutineDebug
-    @coroutine
-    def getRecomendBills(self, user):
-        bills, i = [], 0
-        userBills = yield user.getBills()
-        recordBills = yield extractBillsFromIds(user.getAttr("BillsRecord"))
-        while len(bills) < self.config.recommendBillsReturnOnce:
-            try:
-                if i == 0:
-                    bills.extend((yield self.getAddrMatchBill(user, bills, userBills)))
-                elif i == 1:
-                    bills.extend((yield self.getAddrNearBill(user, bills, userBills)))
-                elif i == 2:
-                    bills.extend((yield self.getRecordMatchBill(user, bills, recordBills)))
-                elif i == 3:
-                    bills.extend((yield self.getLocationMatchBill(user, bills, getCity(user.homeLocation))))
-                elif i == 4:
-                    bills.extend((yield self.getLocationMatchBill(user, bills, getProv(user.homeLocation))))
-                else:
-                    break
-
-            except Exception, e:
-                print e.message
-                break
-            self.mergeBills(bills)
-            i += 1
-
-        raise Return(bills)
 
 
     @coroutineDebug
@@ -408,156 +687,14 @@ class GetRecommendBillsHandler(BaseHandler):
         raise Return(bills)
 
 
-    #基础查询
-    def getQueryFromBase(self, user, excludeBills, queryDict):
-        query = {"billType": self.findtype, "state":BillState.WAIT, "sender":{"$ne":self.getCurrUserId()}}
-        #排除excludeBills里面的单子
-        if len(excludeBills) > 0:
-            query.update({"id":{"$nin":[bill.id for bill in excludeBills]}})
-        query.update(queryDict)
-        return query
-
-    #获取货单的重量与货车载重匹配的条件
-    def getLoadMatchCondition(self, user, bill=None):
-        if user.currType == UserType.DRIVER and user.getCurrTruck():
-            return {"weight":{"$lte":float(user.getCurrTruck()["load"])}}
-        elif user.currType == UserType.OWNER and bill:
-            return {"trunkLoad":{"$gte":bill.weight}}
-        return {}
-
-    def getAddrMatchReg(self, addr):
-        return re.compile(r"^"+addr)
-
-    @coroutineDebug
-    @coroutine
-    def getAddrMatchBill(self, user, excludeBills, bills):
-        '''
-        根据用户当前有效的单据查找from，to都匹配的对应单据
-        :param user:
-        :param excludeBills: 之前已经找到的单据，后面查找时候就要排除掉
-        :param bills:
-        :return:
-        '''
-        if bills:
-            returnBills = []
-
-            try:
-                conditions = []
-                for bill in bills:
-                    cond = {"fromAddr":bill.fromAddr, "toAddr":bill.toAddr}
-                    #载重与货物重量匹配的条件
-                    cond.update(self.getLoadMatchCondition(user, bill))
-                    conditions.append(cond)
-                limitLength = self.config.recommendBillsReturnOnce
-                returnBills = yield Bill.objects(self.getQueryFromBase(user, excludeBills, {"$or":conditions}))\
-                                    .limit(limitLength).to_list(limitLength)
-            except Exception, e:
-                print "QUERY ERROR :", e.message
-
-
-            #遍历用户正在等待中的单子
-            # for bill in bills:
-            #     matchBills = BillMatchController().getMatchBills(bill)
-            #     for bId in matchBills:
-            #         if bId:
-            #             matchBill = yield Bill.get(bId)
-            #             #如果是车单，用户当前车辆的载重小于货重，或者 货单， 货重大于车单的载重就排除
-            #             if matchBill:
-            #                 if (bill.billType == BillType.TRUNK and user.getCurrTruck() and user.getCurrTruck()["load"] < matchBill.weight) or\
-            #                     (bill.billType == BillType.GOODS and bill.weight > matchBill.trunkLoad):
-            #                     continue
-            #                 returnBills.append(matchBill)
-
-            print "----get addr match", len(returnBills)
-            raise Return(returnBills)
-        else:
-            raise Return([])
-
-
-    @coroutineDebug
-    @coroutine
-    def getAddrNearBill(self, user, excludeBills, bills):
-        '''
-        根据用户当前有效的单据查找from，to都在同一个城市的对应单据
-        :param user:
-        :param excludeBills: 之前已经找到的单据，后面查找时候就要排除掉
-        :param bills:
-        :return:
-        '''
-        if bills:
-            conditions = []
-            for bill in bills:
-                #获取单子上面的城市名
-                fromCity, toCity = getCity(bill.fromAddr), getCity(bill.toAddr)
-                cond = {"fromAddr": re.compile(r"^"+fromCity), "toAddr":re.compile(r"^"+toCity)}
-                cond.update(self.getLoadMatchCondition(user, bill))
-                conditions.append(cond)
-
-            query = self.getQueryFromBase(user, excludeBills, {"$or":conditions})
-            returnBills = yield Bill.objects(query).limit(self.config.recommendBillsReturnOnce)\
-                                            .to_list(self.config.recommendBillsReturnOnce)
-            print "------get addr near", len(returnBills)
-            raise Return(returnBills)
-        else:
-            raise Return([])
-
-    @coroutineDebug
-    @coroutine
-    def getRecordMatchBill(self, user, excludeBills, recordBills):
-        '''
-        根据用户以往的发送记录，计算出频率排在前面的几个城市，推送
-        :param user:
-        :param excludeBills:
-        :param recordBills:
-        :return:
-        '''
-        if recordBills:
-            recordFrom = [bill.fromAddr for bill in recordBills]
-            recordTo = [bill.toAddr for bill in recordBills]
-            fromFreq = addrsAnalysis(recordFrom)
-            toFreq = addrsAnalysis(recordTo)
-            #取出频率至多前三位的城市
-            fromCities, toCities = fromFreq["city"].keys()[0:3], toFreq["city"].keys()[0:3]
-
-            query = {"fromAddr":{"$in":fromCities}, "toAddr":{"$in":toCities}}
-            query.update(self.getLoadMatchCondition(user))
-
-            bills = yield Bill.objects(self.getQueryFromBase(user, excludeBills, query))\
-                                .limit(self.config.recommendBillsReturnOnce).to_list(self.config.recommendBillsReturnOnce)
-            print "---get addr record", len(bills)
-            raise Return(bills)
-        else:
-            raise Return([])
-
-
-    @coroutineDebug
-    @coroutine
-    def getLocationMatchBill(self, user, excludeBills, location):
-        '''
-        根据用户当前所在的城市推送相同出发地的回程单
-        :param user:
-        :param excludeBills:
-        :param location:
-        :return:
-        '''
-        try:
-            query = {"fromAddr":re.compile(r"^"+location)}
-            query.update(self.getLoadMatchCondition(user))
-
-            bills = yield Bill.objects(self.getQueryFromBase(user, excludeBills, query))\
-                                        .limit(self.config.recommendBillsReturnOnce).to_list(self.config.recommendBillsReturnOnce)
-        except Exception, e:
-            print "lOCAL EROOR:", e.message
-        print "get location%s match"%location, len(bills)
-        raise Return(bills)
-
 
     @coroutineDebug
     @coroutine
     def getLocalTruckBill(self, location, num):
         drivers = yield User.objects({"id":{"$ne":ObjectId(self.getCurrUserId())}, "trunks":{"$not":{"$size":0}}, \
                                       "homeLocation":re.compile(r"^"+location)}).limit(num).to_list(num)
-        print "-----recommend local:", len(drivers)
+
+        mylog.getlog().info(getLogText("-----recommend local:", len(drivers)))
         returnBills = []
         if drivers:
             for driver in drivers:
@@ -578,124 +715,58 @@ class GetRecommendBillsHandler(BaseHandler):
 
         raise Return(returnBills)
 
-    def mergeBills(self, bills):
-        billIds, billsToRemove = [], []
-        for bill in bills:
-            if bill.id in billIds:
-                billsToRemove.append(bill)
-            else:
-                billIds.append(bill.id)
-        for bill in billsToRemove:
-            bills.remove(bill)
-
-    def calWeight(self, user, bill):
-        weight = 0
-        weight += self.evalBillMatchWeight(self.userBills, bill)
-        weight += self.evalLocationWeight(user, bill)
-        weight += self.evalBillRecordWeight(self.recordBills, bill)
-        weight += self.evalTimeWeight(bill)
-        weight += self.evalStarWeight(user, bill)
-        weight += self.evalTrunkVerifiedWeight(user)
-        weight += self.evalTrunkPicVerifiedWeight(user)
-        weight += self.evalDriverLiscenseVerifiedWeight(user)
-        weight += self.evalIDVerifiedWeight(user)
-        return weight
 
 
-    def evalBillMatchWeight(self, waitBills, bill):
-        '''
-        正在发送单据里有出发目的均匹配的
-        :param historyBills:
-        :param bill:
-        :return:
-        '''
-        for userBill in waitBills:
-            fromComp, toComp = addr_compare(userBill.fromAddr, bill.fromAddr), addr_compare(userBill.toAddr, bill.toAddr)
-            if fromComp > AddrComp.SAME_PROV and toComp > AddrComp.SAME_PROV:
-                return self.config.billMatchWeight+(fromComp*self.config.fromAddrWeight+toComp)*self.config.billMatchRatioWeight
-        return 0
 
-    def evalLocationWeight(self, user, bill):
-        fromComp = addr_compare(user.homeLocation, bill.fromAddr)
-        if fromComp > AddrComp.SAME_PROV:
-            return self.config.homeLocationWeight+fromComp*self.config.homeLocationRatioWeight
-        return 0
+class GetRecommendBillsDataHandler(BaseHandler):
 
-    def evalBillRecordWeight(self, recordBills, bill):
-        if len(recordBills) > 0:
-            recordFrom = [bill.fromAddr for bill in recordBills]
-            recordTo = [bill.toAddr for bill in recordBills]
-            fromFreq = addrsAnalysis(recordFrom)
-            toFreq = addrsAnalysis(recordTo)
-
-            fromPoint = self.calSingleAddrFreqPoint(fromFreq, bill.fromAddr)
-            toPoint = self.calSingleAddrFreqPoint(toFreq, bill.toAddr)
-            total = fromPoint*self.config.fromAddrWeight+toPoint
-            return self.config.recordBillWeight+total*self.config.recordBillRatioWeight if total>0 else 0
-        return 0
-
-    def calSingleAddrFreqPoint(self, addrsFreq, addr):
-        if addr in addrsFreq["region"]:
-            return 2 + addrsFreq["region"][addr]
-        elif getCity(addr) in addrsFreq["city"]:
-            return 1 + addrsFreq["city"][getCity(addr)]
-        elif getProv(addr) in addrsFreq["prov"]:
-            return addrsFreq["prov"][getProv(addr)]
-        return 0
-
-    def evalTimeWeight(self, bill):
-        '''
-        分段函数， 有效期内得到全分，有效期之前减函数
-        :param user:
-        :param bill:
-        :return:
-        '''
-        if bill.billTime:
-            delta = datetime.fromtimestamp(bill.billTime) - datetime.now()
-            deltaSec = delta.total_seconds()
-            if deltaSec > 0:
-                return self.config.timeBaseWeight - int(deltaSec/3600)*self.config.timePerHourWeight
-            elif abs(deltaSec) < bill.validTimeSec:
-                return self.config.timeBaseWeight
-        elif bill.sendTime:
-            delta = datetime.now() - datetime.fromtimestamp(bill.sendTime)
-            deltaSec = delta.total_seconds()
-            if deltaSec > 0:
-                return self.config.timeBaseWeight - int(deltaSec/3600)*self.config.timePerHourWeight
-
-        return 0
-
-    def evalStarWeight(self, user, bill):
-        stars = user.getStars(bill.getContraryType()) or 0
-        return stars*self.config.starWeight
-
-    def evalTrunkVerifiedWeight(self, user):
-        for trunk in user.trunks:
-            if trunk["isUsed"] and trunk["trunkLicenseVerified"]:
-                return self.config.trunkLicenseVerifiedWeight
-        return 0
-
-    def evalTrunkPicVerifiedWeight(self, user):
-        for trunk in user.trunks:
-            if trunk["isUsed"] and "trunkPicFilePaths" in trunk and trunk["trunkPicFilePaths"]:
-                return self.config.trunkPicVerifiedWeight
-        return 0
-
-    def evalDriverLiscenseVerifiedWeight(self, user):
-        return self.config.driverLiscenseVerifiedWeight if user.driverLicenseVerified else 0
-
-    def evalIDVerifiedWeight(self, user):
-        return self.config.IDVerifiedWeight if user.IDNumVerified else 0
-
-
-class RecommendBillsHandler(object):
+    requiredParams = {
+        "billIds":unicode
+    }
 
     @auth
     @coroutineDebug
     @coroutine
     def onCall(self, **kwargs):
-        pass
+        returnData, sendedUsers = [], []
+        try:
+            billIds = json.loads(kwargs["billIds"])
+        except Exception, e:
+            self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            raise Return(None)
+        bills = [(yield Bill.get(id)) for id in billIds]
+        returnData = yield getRecomendBills(bills)
 
+        self.finish(DataProtocol.getSuccessJson(returnData))
+
+
+# def createRecomendBills(billIds):
+#     tempUsers = []
+#     for id in billIds:
+#         bill = yield Bill.get(id)
+#         bill.visitedTimes += 1
+#         bill.visitedChange = True
+#         yield bill.save()
+#         senderId, sender = bill.sender, None
+#         if senderId:
+#             sender = yield User.get(senderId, matchUserType(bill.billType))
+#             if sender:
+#                 #发送给单子拥有者，更新单子访问次数
+#                 if not senderId in tempUsers:
+#                     if sender.getAttr("JPushId"):
+#                         print "push to", sender.getJPushId(bill.billType), "sendertype:", sender.currType
+#                         JPushMsgToId(sender.getAttr("JPushId"), createprotocol(str(sender.id), JPushProtocal.BILL_VISITED), sender.currType)
+#                     tempUsers.append(senderId)
+#         #如果是管理员的账号或者没有发送者的单子，利用已有信息fake一个
+#         if (sender and sender.level == UserLevel.MANAGER) or ((not sender) and bill.senderName):
+#             sender = User()
+#             sender.currType = matchUserType(bill.billType)
+#             sender.nickName = bill.senderName
+#             #fake的用户不能追踪位置
+#             sender.setAttr("Settings", {"locate":False})
+#
+#         if sender:
+#             returnData.append(createRecommendBill(sender.to_user_base_data(), bill.to_client(), bill.billType))
 
 
 class GetRecommendTrunkHandler(BaseHandler):
@@ -844,6 +915,38 @@ class UpdateHistoryBillHandler(BaseHandler):
 
         except Exception:
             self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+
+
+class GetRecordBillHandler(BaseHandler):
+
+    returnOnce = 5
+    returnLimit = 50
+
+    optionalParams = {
+        "fromId": unicode
+    }
+
+    @auth
+    @coroutineDebug
+    @coroutine
+    def onCall(self, **kwargs):
+        mylog.getlog().info(getLogText("get record bills"))
+        user = yield self.getUser()
+        fromId = self.get_argument("fromId", None)
+        fromObjId = ObjectId(fromId) if fromId else None
+        record = user.getAttr("BillsRecord")
+        record.reverse()
+        fromIndex = 0
+        try:
+            if fromObjId:
+                fromIndex = record.index(fromObjId)+1
+        except Exception, e:
+            pass
+        mylog.getlog().info(getLogText("from index: ", fromIndex))
+        slice = record[fromIndex:fromIndex+self.returnOnce] if fromIndex<len(record) else []
+        bills = [(yield Bill.get(id)) for id in slice]
+        billsToReturn = [bill.to_client() for bill in bills if bill]
+        self.finish(DataProtocol.getSuccessJson(billsToReturn))
 
 
 class PickBillHandler(BaseHandler):
@@ -1066,21 +1169,24 @@ class ConfirmHistoryBillHandler(BaseHandler):
         self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
 
 
-class getMatchBillHandler(BaseHandler):
+class getMatchBillMapHandler(BaseHandler):
 
     @coroutineDebug
     @coroutine
     @addAllowOriginHeader
     def onCall(self, **kwargs):
-        print "getMatchBillHandler"
         result = BillMatchController().getMatchMap()
         self.finish(DataProtocol.getSuccessJson(result,"json"))
 
 
-class isBillMatchHandler(BaseHandler):
+class getMatchBillHandler(BaseHandler):
 
     requiredParams = {
-        "billId": unicode
+        "billId": unicode,
+    }
+
+    optionalParams = {
+        "full": unicode
     }
 
     @coroutineDebug
@@ -1088,8 +1194,12 @@ class isBillMatchHandler(BaseHandler):
     @addAllowOriginHeader
     def onCall(self, **kwargs):
         bill = yield Bill.get(kwargs["billId"])
-        result = BillMatchController().isMatch(bill)
-        self.finish(DataProtocol.getSuccessJson(Value.fromBoolean(result)))
+        #full字段表示是传回完整的dict（包括matcher和id），如果不传full， 则传回一个bill id的list
+        if "full" in kwargs and kwargs["full"]:
+            result = BillMatchController().getMatchDict(bill)
+        else:
+            result = BillMatchController().getMatchBills(bill)
+        self.finish(DataProtocol.getSuccessJson(result))
 
 
 class GetBillHandler(BaseHandler):
@@ -1108,3 +1218,68 @@ class GetBillHandler(BaseHandler):
         if bill:
             self.finish(DataProtocol.getSuccessJson(bill.to_client()))
         self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+
+
+class GetBillsHandler(BaseHandler):
+
+    requiredParams = {
+        "billIds": unicode
+    }
+
+    @coroutineDebug
+    @coroutine
+    @addAllowOriginHeader
+    def onCall(self, **kwargs):
+        print "get bills", kwargs["billIds"]
+        try:
+            billIds = json.loads(kwargs["billIds"])
+            bills = []
+            for id in billIds:
+                bill = yield Bill.get(id)
+                if bill:
+                    bills.append(bill.to_client())
+            self.finish(DataProtocol.getSuccessJson(bills))
+
+        except Exception, e:
+            self.finish(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            raise Return(None)
+
+
+#-----------------------------
+#分析billCol
+#-----------------------------
+
+_billanalysis = BillAnalysis()
+
+@coroutineDebug
+@coroutine
+def initBillAnalysis():
+
+    cursor = yield Bill.get_collection().find()
+    while (yield cursor.fetch_next):
+        billDoc = cursor.next_object()
+        bill = Bill.from_db(billDoc)
+        _billanalysis.addBill(bill)
+
+
+class BillAnayliseHandler(BaseHandler):
+
+
+    @coroutineDebug
+    @coroutine
+    @addAllowOriginHeader
+    def onCall(self, **kwargs):
+        self.finish(DataProtocol.getSuccessJson(_billanalysis.getGeneral()))
+
+class BillAnalysePhoneNumHandler(BaseHandler):
+
+    requiredParams = {
+        "phoneNum" : unicode
+    }
+
+    @coroutineDebug
+    @coroutine
+    @addAllowOriginHeader
+    def onCall(self, **kwargs):
+        phoneNum = kwargs["phoneNum"]
+        self.finish(DataProtocol.getSuccessJson(_billanalysis.analyseOne(phoneNum)))

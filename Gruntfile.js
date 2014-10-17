@@ -430,8 +430,7 @@ module.exports = function (grunt) {
         // 'uglify',
         'copy',
         // 'rev',
-        'usemin',
-        'updateServerFromAdmin'
+        'usemin'
     ]);
 
     grunt.registerTask('default', [

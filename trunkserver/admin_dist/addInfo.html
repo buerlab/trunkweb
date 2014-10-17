@@ -105,7 +105,7 @@
                   <button type="button" class="route-view-mode btn btn-primary" data-viewmode="temp">临时路线</button>
                   <button type="button" class="route-view-mode btn btn-default" data-viewmode="regular">常规路线</button>
               </div>
-              <button id="my_panel_fixed" class="pull-right">滚动</button>
+              <button id="my_panel_fixed" class="pull-right">固定</button>
           </h3>
 
                 </div>
@@ -161,14 +161,29 @@
                     <div class="form-group goods-required">
                         <label for="goodsWeight" class="col-sm-4 control-label">重量:</label>
                         <div class="col-sm-5">
-                            <input type="text" class="form-control" id="goodsWeight" placeholder="5.1">
+                            <input type="text" class="form-control" id="goodsWeight" placeholder="数字">
                         </div>
                         <label for="from" class="col-sm-1 control-label">吨</label>
                     </div>
+                    <div class="form-group goods-required">
+                        <label for="goodsVolume" class="col-sm-4 control-label">体积（方）:</label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="goodsVolume" placeholder="数字">
+                        </div>
+                        <label for="from" class="col-sm-1 control-label">方</label>
+                    </div>
+                    <div class="form-group goods-required">
+                        <label for="needTrunkLength" class="col-sm-4 control-label">要求车长:</label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="needTrunkLength" placeholder="数字">
+                        </div>
+                        <label for="from" class="col-sm-1 control-label">米</label>
+                    </div>
+
                     <div class="form-group goods-required hide">
                         <label for="goodsPrice" class="col-sm-4 control-label">目标价格:</label>
                         <div class="col-sm-5">
-                            <input type="text" class="form-control" id="goodsPrice" placeholder="5.1">
+                            <input type="text" class="form-control" id="goodsPrice" placeholder="数字">
                         </div>
                         <label for="from" class="col-sm-1 control-label">元</label>
                     </div>
@@ -207,14 +222,14 @@
                     <div class="form-group trunk-required">
                         <label for="trunkLength" class="col-sm-4 control-label">车长:</label>
                         <div class="col-sm-6">
-                            <input type="text" class="form-control" id="trunkLength" placeholder="比如：9.6">
+                            <input type="text" class="form-control" id="trunkLength" placeholder="数字">
                         </div>
                         <label class="col-sm-1 control-label">米</label>
                     </div>
                     <div class="form-group trunk-required hide">
                         <label class="col-sm-4 control-label">载重:</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="trunkLoad" placeholder="比如：5.4">
+                            <input type="text" class="form-control" id="trunkLoad" placeholder="数字">
                         </div>
                         <label class="col-sm-1 control-label">吨</label>
                     </div>
@@ -234,10 +249,11 @@
                     <div class="form-group">
                         <label for="validateTime" class="col-sm-4 control-label">有效期:</label>
                         <div class="col-sm-5">
-                            <input type="text" class="form-control" id="validateTime" placeholder="默认2天">
+                            <input type="text" class="form-control" id="validateTime" placeholder="默认8小时，晚上发的信息这里要填‘1’天">
                         </div>
                         <label class="col-sm-1 control-label">天</label>
                     </div>
+
 
                     <div class="form-group">
                         <label for="comment" class="col-sm-4 control-label">备注:</label>
@@ -249,6 +265,8 @@
                     <input type="text" class="form-control hide" id="qqgroup">
                     <input type="text" class="form-control hide" id="qqgroupid">
                     <input type="text" class="form-control hide" id="rawText">
+                    <input type="text" class="form-control hide" id="wcUserId">
+                    <input type="text" class="form-control hide" id="sendTime">
                     <div class="form-group">
                         <label for="op" class="col-sm-4 control-label">操作:</label>
                         <div class="col-sm-8">
@@ -430,7 +448,7 @@
                             <th>昵称</th>
                             <th>电话号码</th>
                             <th>QQ群</th>
-                            <th>QQ群号</th>
+                            <th>号码</th>
                             <th>时间</th>
 
                             <th class="toAddMessagecontent">内容</th>

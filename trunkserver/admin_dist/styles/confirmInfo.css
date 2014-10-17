@@ -7628,7 +7628,3 @@ td.visible-print {
     display: none !important;
   }
 }
-/* line 5, ../../app/styles/confirmInfo.scss */
-#confirmInfoTable th {
-  min-width: 100px;
-}

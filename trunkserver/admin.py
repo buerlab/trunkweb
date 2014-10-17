@@ -11,6 +11,7 @@ from mylog import mylog,getLogText
 import StringIO
 import sys,os
 from urllib import unquote
+from  jpush.YunPianRegCodeService import YunPianMsgMatch
 try:
     from PIL import Image
 except:
@@ -281,6 +282,7 @@ class LoginHandler(BaseHandler):
         userinput = self.get_argument("username", None)
         psw = self.get_argument("password", None)
         service = self.getDbService()
+        print "service",service
         #valid cookie or username and password can login
         if userinput and psw:
             user = service.confirmAdmin(userinput, encryptPassword(psw))
@@ -488,7 +490,7 @@ class UploadTrunkLicenseHandler(BaseHandler):
         type = image.format
 
 
-        filepath = "/secret/trunkLicensePic/"+filename+"_" + str(int(time.time()) ) +"."+type.lower()
+        filepath = "/secret/trunkLicensePic/"+ str(int(time.time()) ) +"."+type.lower()
         image.save(static_path + filepath)
         names = filename.split("_")
         userid = names[1]
@@ -641,8 +643,8 @@ class AddMessageHandler(BaseHandler):
         groupname = self.get_argument("groupname",None)
         groupid = self.get_argument("groupid",None)
         phonenum = self.get_argument("phonenum",None)
-
-        service.addToAddMessage(time,nickname,content,groupname,groupid,phonenum)
+        wcUserId = self.get_argument("wcUserId",None)
+        service.addToAddMessage(time,nickname,content,groupname,groupid,phonenum,wcUserId)
         self.write(DataProtocol.getSuccessJson())
 
 
@@ -656,7 +658,7 @@ class DeleteMessageHandler(BaseHandler):
         if(not id is None):
             mylog.getlog().info(getLogText( "id", id))
             username = self.getCurrentUsername()
-            service.delToAddMessage(id,username)
+            ret = service.delToAddMessage(id,username)
             self.write(DataProtocol.getSuccessJson("ok","json"))
         else:
             self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR,"id is invaill"))
@@ -704,7 +706,8 @@ sendBillDict = {
     "price": unicode,
     "weight": unicode,
     "material": unicode,
-
+    "volume": unicode,
+    
     "trunkType": unicode,
     "trunkLength": unicode,
     "trunkLoad": unicode,
@@ -712,6 +715,7 @@ sendBillDict = {
 
     "qqgroupid":"",
     "qqgroup":"",
+    "wcUserId":"",
     "rawText":""
 }
 
@@ -720,7 +724,10 @@ class SendMessageHandler(BaseHandler):
     @auth
     @permission("addInfoPermission")
     def post(self):
+
         toSave = dict([(key, self.get_argument(key, None)) for key in sendBillDict.iterkeys() if self.get_argument(key, None)])
+        # mylog.getlog().info(getLogText("toSave", toSave))
+        
         service = self.getDbService()
         # mylog.getlog().info(getLogText("SendMessageHandler toSave=",toSave))
         if toSave:
@@ -1023,6 +1030,133 @@ class GetLogListHandler(BaseHandler):
         ret =  os.listdir(self.cur_file_dir() + "/log")
         self.write(DataProtocol.getSuccessJson(ret,"json"))
 
+#【天天回程车】#nickname# 刚好有从 #from# 到 #to# 的 #type#，他的电话是#phonenum# 更多货源车源，尽在天天回程车，点击下载 #url#回T退订
+class SendMatchMsgHandler(BaseHandler):
+    @addLog
+    @auth
+    def post(self):
+        sendTo = self.get_argument("sendTo",None)
+        phonenum = self.get_argument("phonenum",None)
+        nickname = self.get_argument("nickname","你好")
+        _from = self.get_argument("from",None)
+        _to = self.get_argument("to",None)
+        usertype = self.get_argument("usertype","driver")
+        comment = self.get_argument("comment",None)
+        print phonenum,nickname,_from,_to
+
+        if usertype is None or sendTo is None or phonenum is None or nickname is None or _from is None or _to is None:
+            self.write(DataProtocol.getJson(DataProtocol.ARGUMENT_ERROR))
+            return
+
+        regcodeObject = YunPianMsgMatch()
+        regcodeStr = regcodeObject.send(sendTo,phonenum,usertype,nickname,_from,_to,comment)
+
+        mylog.getlog().info(regcodeStr)
+        self.write(DataProtocol.getSuccessJson())
+
+class GrabPhonenumHandler(BaseHandler):
+    def post(self):
+        data = self.get_argument("data",None)
+        data = data.encode("utf-8")
+        if data:
+            dataJSON = json.loads(data)
+
+        service = self.getDbService();
+        for item in dataJSON:
+            service.grabPhonenum(**item)
+
+        self.write(DataProtocol.getSuccessJson())
+
+class GrabBaixingUrlHandler(BaseHandler):
+    def post(self):
+        data = self.get_argument("data",None)
+        data = data.encode("utf-8")
+        if data:
+            dataJSON = json.loads(data)
+
+        service = self.getDbService();
+        for url in dataJSON:
+            service.saveBaixingUrl(url)
+
+        self.write(DataProtocol.getSuccessJson())
+
+class GetBaixingUrlHandler(BaseHandler):
+    def get(self):
+        service = self.getDbService();
+        item = service.mongo.trunkDb.baixingUrl.find_one({"read":{'$ne':1}})
+        if item:
+            item["read"] = 1
+            service.mongo.trunkDb.baixingUrl.update({"_id":item["_id"]},item)
+            self.write(DataProtocol.getSuccessJson(item["url"],"string"))
+        else:
+            self.write(DataProtocol.getSuccessJson("nothing","string"))
+
+class GrabGanjiUrlHandler(BaseHandler):
+    def post(self):
+        data = self.get_argument("data",None)
+        data = data.encode("utf-8")
+        if data:
+            dataJSON = json.loads(data)
+
+        service = self.getDbService();
+        for url in dataJSON:
+            service.saveGanjiUrl(url)
+
+        self.write(DataProtocol.getSuccessJson())
+
+class GetGanjiUrlHandler(BaseHandler):
+    def get(self):
+        service = self.getDbService();
+        item = service.mongo.trunkDb.ganjiUrl.find_one({"read":{'$ne':1}})
+        if item:
+            item["read"] = 1
+            service.mongo.trunkDb.ganjiUrl.update({"_id":item["_id"]},item)
+            self.write(DataProtocol.getSuccessJson(item["url"],"string"))
+        else:
+            self.write(DataProtocol.getSuccessJson("nothing","string"))
+
+class Get51YunliHandler(BaseHandler):
+    def post(self):
+        service = self.getDbService()
+        data = self.get_argument("data",None)
+        data = data.encode("utf-8")
+        if data:
+            dataJSON = json.loads(data)
+            for item in dataJSON:
+                service.mongo.trunkDb.grab51YunliCol.update({"phonenum":item["phonenum"]}, item, True)
+                print item
+            self.write(DataProtocol.getSuccessJson("nothing","string"))
+        else:
+            self.write(DataProtocol.getSuccessJson("fail","string"))
+
+    def get(self):
+        self.write(DataProtocol.getSuccessJson("fail","string"))
+
+
+class Grab56135UrlHandler(BaseHandler):
+    def post(self):
+        data = self.get_argument("data",None)
+        data = data.encode("utf-8")
+        if data:
+            dataJSON = json.loads(data)
+
+        service = self.getDbService();
+        for url in dataJSON:
+            service.save56135Url(url)
+
+        self.write(DataProtocol.getSuccessJson())
+
+class Get56135UrlHandler(BaseHandler):
+    def get(self):
+        service = self.getDbService();
+        item = service.mongo.trunkDb.a56135Url.find_one({"read":{'$ne':1}})
+        if item:
+            item["read"] = 1
+            service.mongo.trunkDb.a56135Url.update({"_id":item["_id"]},item)
+            self.write(DataProtocol.getSuccessJson(item["url"],"string"))
+        else:
+            self.write(DataProtocol.getSuccessJson("nothing","string"))
+
 settings = {
     "login_url":"/login",
     "cookie_secret":"61oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo="
@@ -1076,12 +1210,26 @@ application = tornado.web.Application([
     (r"/stat/toadd",GetToAddStatHandler),
     (r"/stat/added",GetAddedStatHandler),
 
+    (r"/msg/match",SendMatchMsgHandler),
+
     (r"/log/get",GetLogHandler),
     (r"/log/getList",GetLogListHandler),
 
-    (r"/userFeedback",UserFeedbackHandler),
-    (r"/secret/(.*)",SecretPicHander),
+    (r"/grabPhonenum",GrabPhonenumHandler),
+    (r"/grabBaixingUrl",GrabBaixingUrlHandler),
+    (r"/getBaixingUrl",GetBaixingUrlHandler),
 
+    (r"/grabGanjiUrl",GrabGanjiUrlHandler),
+    (r"/getGanjiUrl",GetGanjiUrlHandler),
+
+    (r"/get51yunli",Get51YunliHandler),
+
+    (r"/grab56135Url",Grab56135UrlHandler),
+    (r"/get56135Url",Get56135UrlHandler),
+
+    (r"/userFeedback",UserFeedbackHandler),
+    # (r"/secret/(.*)",SecretPicHander),
+    (r'/secret/(.*)', tornado.web.StaticFileHandler, {'path': static_path + "/secret"}),
     (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
 ], **settings)
     

@@ -184,7 +184,6 @@ $(".menu-item").click(function(){
     $(".main-container").hide();
     $("#" + $(this).data("id")).show();
 });
-$(".menu-item").eq(0).trigger("click");
 
 $(function(){
     var summaryStatArray=[];
@@ -483,7 +482,11 @@ $(function(){
       *****************/  
 
     bindEvent();
-    getSummaryData();
+    $("#summaryStatMenu").click(function(){
+        getSummaryData();
+        debugger;
+    });
+    // getSummaryData();
     // getSummaryDataTest();
 });
 
@@ -661,17 +664,32 @@ $(function(){
         });
 
         summaryArray.sort(function(a,b){
+            debugger;
+            var aTime;
+            var bTime;
 
-            if(a.time == "summary"){
+            if(a.time.indexOf(":")>=0){
+                aTime = a.time.split(":")[0];
+            }else{
+                aTime = a.time;
+            }
+
+            if(b.time.indexOf(":")>=0){
+                bTime = b.time.split(":")[0];
+            }else{
+                bTime = b.time;
+            }
+
+            if(aTime == "summary"){
                 return -1;
             }
 
-            if(b.time == "summary"){
+            if(bTime == "summary"){
                 return 1;
             }
-            if(+getDate(a.time) > +getDate(b.time)){
+            if(+getDate(aTime) > +getDate(bTime)){
                 return 1;
-            }else if(+getDate(a.time) == +getDate(b.time)){
+            }else if(+getDate(aTime) == +getDate(bTime)){
                 return 0;
             }else{
                 return -1;
@@ -706,9 +724,12 @@ $(function(){
 
 
 
-
+    $("#editorStatMenu").click(function(){
+        getEditorData();
+        debugger;
+    });
     // getEditorDataTest();
-    getEditorData();
+    // getEditorData();
      /******************
       * summary 数据总览  end
       *****************/  
@@ -896,9 +917,12 @@ $(function(){
 
 
 
-
+    $("#groupStatMenu").click(function(){
+        debugger;
+        getGroupData();
+    });
     // getGroupDataTest();
-    getGroupData();
+    // getGroupData();
      /******************
       * summary 数据总览  end
       *****************/  
@@ -1108,7 +1132,12 @@ $(function(){
 
 
     // getRegionDataTest();
-    getRegionData();
+    // getRegionData();
+
+    $("#regionStatMenu").click(function(){
+        debugger;
+        getRegionData();
+    });
 
     getRegionDataTest2 = function(){
         // regionStatArray = parseSummaryArray(_d);
@@ -1257,9 +1286,11 @@ $(function(){
 
 
 
-
+    $("#routeStatMenu").click(function(){
+        getRouteData();
+    });
     // getRegionDataTest();
-    getRouteData();
+    // getRouteData();
 
     // getRegionDataTest2 = function(){
     //     // routeStatArray = parseSummaryArray(_d);
@@ -1428,7 +1459,11 @@ $(function(){
         });
     }
 
-    getToAddData();
+
+    // getToAddData();
+    $("#toAddStatMenu").click(function(){
+        getToAddData();
+    });
 
     var getToAddDataTest = function(){
         // toAddStatArray = parseSummaryArray(_d);
@@ -1443,7 +1478,7 @@ $(function(){
 
 $(function(){
     var addedStatArray=[];
-
+    var adminUserId = "53e9cd5915a5e45c43813d1c";
     var bindEvent = function(){
 
         $(".addedStat-usertype").click(function(){
@@ -1452,6 +1487,17 @@ $(function(){
             $(this).removeClass("btn-default");
             $(this).addClass("btn-primary");
             $(".addedStatPaginationWrapper").data("current",1);
+
+            if($(this).data("usertype") == "owner"){
+                $("#todayTrunkInfoList").hide();
+                $("#todayGoodsInfoList").show();
+            }else if($(this).data("usertype") == "driver"){
+                $("#todayTrunkInfoList").show();
+                $("#todayGoodsInfoList").hide();                
+            }else{
+                $("#todayTrunkInfoList").hide();
+                $("#todayGoodsInfoList").hide();   
+            }
             getData();
         });
 
@@ -1564,13 +1610,15 @@ $(function(){
             }
             var renderItem = function(data){
                 var template = '<tr id="tr_'+ data._id.$oid +'">\
-                  <td>'+ data.phoneNum +'</td>\
-                  <td>'+ data.senderName +'</td>\
+                    <td><input type="checkbox" class="info-list-checkbox" /></td>\
+                    <td><a href="javascript:void(0);" class="fail" data-id=\"'+ data._id.$oid +'\" data-usertype=\"'+ data.userType +'\">删除</a></td>\
+                  <td class="phoneNum-text">'+ data.phoneNum +'</td>\
+                  <td class="senderName-text">'+ data.senderName +'</td>\
                   <td>'+ renderUserType(data.userType) +'</td>\
-                  <td>'+ data.fromAddr +'</td>\
-                  <td>'+ data.toAddr +'</td>\
-                  <td>'+ (data.sendTime ?  Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") +'</td>\
-                  <td>'+ (data.comment? data.comment:"无") +'</td>\
+                  <td class="fromAddr-text">'+ data.fromAddr +'</td>\
+                  <td class="toAddr-text">'+ data.toAddr +'</td>\
+                  <td class="sendTime-text">'+ (data.sendTime ?  Datepattern(new Date(data.sendTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") +'</td>\
+                  <td class="comment-text">'+ (data.comment? data.comment:"无") +'</td>\
                   <td>'+ (data.editor? data.editor:"无") +'</td>\
                 </tr>';
                 return template;
@@ -1605,7 +1653,10 @@ $(function(){
         });
     }
 
-    getData();
+    $("#addedStatMenu").click(function(){
+        getData();
+    });
+    // getData();
 
     var getDataTest = function(){
         // addedStatArray = parseSummaryArray(_d);
@@ -1615,5 +1666,261 @@ $(function(){
       * summary 数据总览  end
       *****************/  
 
+
+    $("#todayTrunkInfoList").click(function(){
+        var ret = "【天天回程车】" + Datepattern(new Date(),"MM-dd") + "今日车讯:\r\n";
+        var array = []
+        $("#addedStatTable tr").each(function(k, v){
+            if($(this).find(".info-list-checkbox").get(0) && $(this).find(".info-list-checkbox").get(0).checked){
+                var phoneNum = $(this).find(".phoneNum-text").html();
+                var nickname = $(this).find(".senderName-text").html();
+                var fromAddr = $(this).find(".fromAddr-text").html();
+                var toAddr = $(this).find(".toAddr-text").html();
+                var sendTime = $(this).find(".sendTime-text").html();
+                var comment = $(this).find(".comment-text").html();
+
+                var getAddr = function(addr){
+                    addrArray = addr.split("-");
+                    if(addrArray.length !=3){
+                        showTips("地址格式不对");
+                        return;
+                    }
+                    return (addrArray[0] + addrArray[1] + addrArray[2]).replace(/不限/g,"");
+                }
+
+                // array.push( getAddr(fromAddr) + " 到 " + getAddr(toAddr) + " " + nickname + " 联系方式：" + phoneNum + " " + comment + "\r\n");
+                array.push( getAddr(fromAddr) + " 到 " + getAddr(toAddr) + " " + nickname + " " + comment + "\r\n");
+             }
+        });
+        array.sort();
+        ret += array.join("");
+        ret += "\r\n";
+        ret += "更多回程车信息尽在【天天回程车】\r\n";
+        ret += "官方QQ群：215785844\r\n";
+        ret += "官方网址：http://t.cn/RhfEjuH \r\n";
+        ret += "点击直接下载：http://t.cn/Rhfnzt7 \r\n";
+        ret += "微信公众账号开通了！搜索【天天回程车】可以直接在上面免费查看大量车源信息哦\r\n";
+        
+        console.log(ret);
+        showTips("已生成，按F12 在console里面获取");
+    });
+
+
+    $("#todayGoodsInfoList").click(function(){
+        var ret = "【天天回程车】" + Datepattern(new Date(),"MM-dd") + "今日货讯:\r\n";
+        var array = [];
+        $("#addedStatTable tr").each(function(k, v){
+            if($(this).find(".info-list-checkbox").get(0) && $(this).find(".info-list-checkbox").get(0).checked){
+                var phoneNum = $(this).find(".phoneNum-text").html();
+                var nickname = $(this).find(".senderName-text").html();
+                var fromAddr = $(this).find(".fromAddr-text").html();
+                var toAddr = $(this).find(".toAddr-text").html();
+                var sendTime = $(this).find(".sendTime-text").html();
+                var comment = $(this).find(".comment-text").html();
+
+                var getAddr = function(addr){
+                    addrArray = addr.split("-");
+                    if(addrArray.length !=3){
+                        showTips("地址格式不对");
+                        return;
+                    }
+                    return (addrArray[0] + addrArray[1] + addrArray[2]).replace(/不限/g,"");
+                }
+
+                array.push(getAddr(fromAddr) + " 到 " + getAddr(toAddr) + " " + nickname + " " + comment + "\r\n");
+             }
+        });
+        array.sort();
+        ret += array.join("");
+        ret += "\r\n";
+        ret += "更多货源信息尽在【天天回程车】\r\n";
+        ret += "官方QQ群：215785844\r\n";
+        ret += "官方网址：http://t.cn/RhfEjuH \r\n";
+        ret += "点击直接下载：http://t.cn/Rhf3I4W \r\n";
+        ret += "微信公众账号开通了！搜索【天天回程车】可以直接在上面免费查看大量货源信息哦\r\n";
+        console.log(ret);
+        showTips("已生成，按F12 在console里面获取");
+    });
+
+
+
+    $("#check-all").click(function(){
+        if($("#check-all").html() == "全选"){
+            $(".info-list-checkbox").each(function(k,v){
+                v.checked = true;
+            });
+            $("#check-all").html("全不选");
+        }else{
+            $(".info-list-checkbox").each(function(k,v){
+                v.checked = false;
+            });
+            $("#check-all").html("全选");
+        }
+        
+    });
+    $("#addedStat-date-from").val(Datepattern(new Date(),"yyyy-MM-dd"))
+    $("#addedStat-date-to").val(Datepattern(new Date(),"yyyy-MM-dd"))
     bindEvent();
+
+    $("#addedStatTable").delegate(".fail","click",function(){
+
+            if(!confirm("确定要删除这条请求吗？")){
+                return;
+            }
+            debugger;
+            var $this = $(this),
+                id = $this.data("id");
+
+            var tds = $("#tr_"+ id).find("td");
+            var d = {
+                phoneNum : tds.eq(2).html(),
+                fromAddr : tds.eq(5).html(),
+                toAddr : tds.eq(6).html(),
+                userType : $this.data("usertype")
+            }
+
+
+            var jqxhr = $.ajax({
+                url: "/addedmessage/delete",
+                data: d,
+                type: "POST",
+                dataType: "json",
+                success: function(data) {
+                    dataProtocolHandler(data,function(data){
+                        debugger; 
+                        $this.parents().filter("tr").hide("fast", function() {
+                            $(this).remove();
+                        });
+                    });
+                },
+
+
+                error: function(data) {
+                    errLog && errLog("api/bill/remove error");
+                }
+            });
+
+            // var realDelete = function(){
+            //     var jqxhr = $.ajax({
+            //         url: "http://115.29.8.74:9288/api/bill/remove",
+            //         data: {
+            //             "billid": id,
+            //             "userId": adminUserId,
+            //             "userType": "owner"
+            //         },
+            //         type: "POST",
+            //         dataType: "json",
+            //         success: function(data) {
+            //             dataProtocolHandler(data,function(data){
+            //                 debugger; 
+            //                 $this.parents().filter("tr").hide("fast", function() {
+            //                     $(this).remove();
+            //                 });
+            //                 // location.href = "/";
+            //             });
+            //         },
+
+            //         error: function(data) {
+            //             errLog && errLog("http://115.29.8.74:9288/api/bill/remove error");
+            //         }
+            //     });
+            // }
+            
+            return false;
+        });
+
+});
+
+$(function(){
+
+    var renderAll =function(data){
+        $("#billAnalysis .list-group").empty();
+
+        for (var i in data) if (data.hasOwnProperty(i)) {
+            var html = '<a href="javascript:void(0);" class="phone-list-item list-group-item"  data-phonenum="' + i + ' ">' + data[i] + ' ' + i + ' [' + '3' + ']</a>';
+            $("#billAnalysis .list-group").append(html);
+        }
+    }
+    var getAll= function(){
+        var url = "http://115.29.8.74:9288/api/bill/analysis";
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: null,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                console.log(data)
+                dataProtocolHandler(data,function(data){
+                    debugger;
+                    renderAll(data);
+                    console.log(data);
+                    // render(data);
+                    // showRegionChart(toAddStatArray);
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("getToAddData() error");
+            }
+        });
+    }
+
+
+    var renderData = function(array){
+        $("#billAnalysis tbody").empty();
+        debugger;
+        $.each(array.data,function(k,v){
+            // if(v.time != "summary"){
+            var html = '<tr><td>'+ v.date +'</td>'+
+                      '<td>' + (v.type == "trunk" ? "车源" : "货源") + '</td>' +  
+                      '<td>' + v.route + '</td>' + 
+                      '<td>' + "qq群" + '</td></tr>' ;
+                      
+            $("#billAnalysis tbody").append(html);
+                
+            // }
+            // "confirmingMessageCount":0,
+            // "refuseMessageCount":0,
+            // "confirmedMessageCount":0
+        });
+
+    }
+
+    var getPhonenumData= function(phonenum){
+        var url = "http://115.29.8.74:9288/api/bill/analysis_num";
+
+
+        var jqxhr = $.ajax({
+            url: url,
+            data: {
+                "phoneNum": phonenum
+            },
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                dataProtocolHandler(data,function(data){
+                    console.log(data);
+                    renderData(data);
+                    // render(data);
+                    // showRegionChart(toAddStatArray);
+                });
+            },
+
+            error: function(data) {
+                errLog && errLog("getToAddData() error");
+            }
+        });
+    }
+
+    getAll();
+
+    $("#billAnalysis .list-group").delegate(".phone-list-item","click",function(k){
+        debugger;
+        getPhonenumData($(this).data("phonenum"));
+        $(".phone-list-item").removeClass("active");
+        $(this).addClass("active");
+    });
+
+
 });

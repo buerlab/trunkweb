@@ -1,3 +1,4 @@
+#encoding=utf-8
 __author__ = 'zhongqiling'
 
 import tornado
@@ -38,6 +39,8 @@ def sync_loop_call(delta=60 * 1000):
 
     return wrap_loop
 
+addr_whole = u"不限"
+
 class AddrComp(object):
     INVALID = -1
     DIFFER = 0
@@ -70,9 +73,9 @@ def splitAddr(addr):
     except Exception, e:
         return []
 
-def joinAddr(addrlist):
+def joinAddr(addrlist, spliter="-"):
     if isinstance(addrlist, list) and len(addrlist) > 0:
-        return "-".join(addrlist) if len(addrlist) > 1 else addrlist[0]
+        return spliter.join(addrlist) if len(addrlist) > 1 else addrlist[0]
     return ""
 
 def addrsAnalysis(addrs):
@@ -99,11 +102,11 @@ def calFrequence(addrDict):
 
     return addrDict
 
-def getCity(addr):
+def getCity(addr, spliter="-"):
     addrList = splitAddr(addr)
     if len(addrList) > 1:
         addrList.pop()
-        return joinAddr(addrList)
+        return joinAddr(addrList, spliter)
     return ""
 
 def getProv(addr):
@@ -111,6 +114,19 @@ def getProv(addr):
     if len(addrList) == 3:
         return addrList[0]
     return ""
+
+def getAddrShort(addr, spliter="-"):
+    addrList = splitAddr(addr)
+    if len(addrList) > 1:
+        addrList.pop()
+        while len(addrList) > 0:
+            addr = addrList.pop()
+            if not isAddrWhole(addr):
+                return addr
+    return ""
+
+def isAddrWhole(addr):
+    return addr == u"不限" or addr == "不限"
 
 
 @coroutineDebug

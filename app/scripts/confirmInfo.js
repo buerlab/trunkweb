@@ -3,7 +3,8 @@ $(function(){
     var refuseId = "";
 
     var adminUserId = "53e9cd5915a5e45c43813d1c";
-
+    var lastId = null;
+    var lastSendId = null;
     var Datepattern=function(d,fmt) {           
     var o = {           
         "M+" : d.getMonth()+1, //月份           
@@ -61,16 +62,20 @@ $(function(){
             getData();
         });
 
+
         $("#confirmInfoTable").delegate(".success","click",function(){
             var dataJson = $(this).parent().data("data");
-            dataJson.sender = adminUserId;
+            if(dataJson.wcUserId){
+                dataJson.sender = dataJson.wcUserId;
+            }else{
+                dataJson.sender = adminUserId;
+            }
+            
             dataJson.userId = adminUserId;
             if($(this).html() != "处理中"){
                 confirmBill(dataJson);
                 $(this).html("处理中");
             }
-            
-            
         });
 
         $("#confirmInfoTable").delegate(".fail","click",function(){
@@ -145,8 +150,7 @@ $(function(){
                 html += '<li class="active"><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
             }else{
                 html += '<li><a class="pageLi" href="javascript:void(0);">'+i +'</a></li>';
-            }
-            
+            }   
         }
 
         html += backTemp;
@@ -193,18 +197,21 @@ $(function(){
             var renderInfo = function(data){
                 var ret = "";
                 if (data.billType == "trunk"){
-                    ret += "车长:" + safeRender(data.trunkLength) + ";";
-                    ret += "车辆类型:" + safeRender(data.trunkType) + ";";
-                    ret += "回程时间:" + (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") + ";";
+                    ret += "车长:" + safeRender(data.trunkLength) + "<br>";
+                    ret += "车辆类型:" + safeRender(data.trunkType) + "<br>";
+                    ret += "回程时间:" + (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") + "";
                 }
                 if (data.billType == "goods"){
-                    ret += "货重:" + safeRender(data.weight) + ";";
-                    ret += "货物名称:" + safeRender(data.material) + ";";
-                    ret += "发货时间:" + (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") + ";";
+                    ret += "货重:" + safeRender(data.weight) + "<br>";
+                    ret += "需要车长:" + safeRender(data.trunkLength) + "<br>";
+                    ret += "体积:" + safeRender(data.volume) + "<br>";
+                    ret += "货物名称:" + safeRender(data.material) + "<br>";
+                    ret += "发货时间:" + (data.billTime ?  Datepattern(new Date(data.billTime * 1000),"yyyy-MM-dd HH:mm:ss") : "") + "";
                 }
-                ret += "有效期:" + data.validTimeSec ? data.validTimeSec /(24 * 60 * 60) : ""+ ";";
+                ret += "有效期:" + (data.validTimeSec ? data.validTimeSec /(24 * 60 * 60) + "天" : "8小时")+ "";
                 return ret;
             }
+
 
             var renderItem = function(data){
 
@@ -225,16 +232,9 @@ $(function(){
                       <button type="button" class="btn btn-primary success">通过</button>\
                        <button type="button" class="btn btn-danger dropdown-toggle fail" data-toggle="dropdown">驳回<span class="caret"></span></button>\
                             <ul class="dropdown-menu" role="menu">\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">昵称太长了，最好四个字以内</a></li>\
+                              <li><a  class= "refuse-resson" href="javascript:void(0);">太模糊了</a></li>\
                               <li><a  class= "refuse-resson" href="javascript:void(0);">昵称格式不对，</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">这条信息已经录用过了，请放弃录入</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">备注太长了，精简一点</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">备注的格式不太好，注意标点符号</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">备注不能显示任何手机号码，请删掉</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">备注显示无关内容，请删掉</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">地址格式不对</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">地址不对</a></li>\
-                              <li><a  class= "refuse-resson" href="javascript:void(0);">其他错误，请联系管理员</a></li>\
+                              <li><a  class= "refuse-resson" href="javascript:void(0);">车源货源弄反了</a></li>\
                             </ul>\
                     </div>\
                 </td>\
@@ -293,6 +293,14 @@ $(function(){
             id :_param._id.$oid
         }
 
+        if(lastId){
+            lastId = param.id;
+        }else{
+            if(lastId == _param._id.$oid){
+                showTips("重复提交");
+            }
+        }
+
         var jqxhr = $.ajax({
             url: url,
             data: param,
@@ -312,11 +320,12 @@ $(function(){
 
     function sendBill2(_param){
         var url = "http://115.29.8.74:9288/api/bill/send";
-                   
+        debugger;
         var param = _param;
         if(param==null){
             return;
         }
+
 
         var jqxhr = $.ajax({
             url: url,
@@ -366,5 +375,7 @@ $(function(){
         });
     }
     
+    
+
 
 });

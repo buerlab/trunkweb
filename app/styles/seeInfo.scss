@@ -36,3 +36,11 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 #addedStatTable th{
     min-width: 100px;
 }
+#summaryStatCanvasCantainer{
+    overflow: scroll;
+}
+
+.phone-list{
+    max-height: 400px;
+    overflow: scroll;
+}

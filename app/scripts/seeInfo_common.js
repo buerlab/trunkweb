@@ -72,4 +72,3 @@ $(".menu-item").click(function(){
     $(".main-container").hide();
     $("#" + $(this).data("id")).show();
 });
-$(".menu-item").eq(0).trigger("click");

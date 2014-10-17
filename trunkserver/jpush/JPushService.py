@@ -35,6 +35,7 @@ class JPushProtocal(object):
     HISTORY_BILL_CONFIRM = 4
     HISTORY_BILL_REQ = 5
     RECOMMEND_BILL = 6
+    GET_MATCH_BILL = 7
 
 def createNotification(alert, title="天天回程车"):
     return {"notification":{"alert":alert,"title":title}}
@@ -62,6 +63,10 @@ def createHistoryBillConfirmMsg(userId, senderName, billId):
 def createRecomendBillMsg(userId, bill):
     data = {"bill": bill}
     return createprotocol(userId, JPushProtocal.RECOMMEND_BILL, data)
+
+def createGetMatchBillMsg(userId):
+    return createprotocol(userId, JPushProtocal.GET_MATCH_BILL)
+
 
 def JPushNotifyAll(alert, msg={}, toUserType = ""):
     parms = {

@@ -154,7 +154,11 @@ $(function(){
         });
     }
 
-    getToAddData();
+
+    // getToAddData();
+    $("#toAddStatMenu").click(function(){
+        getToAddData();
+    });
 
     var getToAddDataTest = function(){
         // toAddStatArray = parseSummaryArray(_d);
